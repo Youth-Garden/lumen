@@ -4,7 +4,7 @@ Lumen is an advanced, all-in-one educational platform engineered to help learner
 
 ---
 
-## 💡 Core Philosophy & Methodology
+## Core Philosophy & Methodology
 
 Lumen is designed around proven cognitive methodologies rather than passive consumption:
 
@@ -19,7 +19,7 @@ Lumen is designed around proven cognitive methodologies rather than passive cons
 
 ---
 
-## 🛠️ System Architecture & Repository Structure
+## System Architecture & Repository Structure
 
 The platform is designed as a **submodule-based multi-repository** to enforce clean boundaries and independent deployment cycles.
 
@@ -51,14 +51,14 @@ graph TD
     end
 ```
 
-### 📦 Repository Organization
+### Repository Organization
 * **Root Repository (`lumen`)**: The master orchestration repository linking submodules.
 * **Backend Submodule (`backend` / `lumen-server`)**: A Modular Monolith API.
 * **Frontend Submodule (`frontend` / `lumen-web`)**: A Turborepo monorepo for client web interfaces.
 
 ---
 
-## 🚀 Deep-Dive: Technical Stack & Core Modules
+## Deep-Dive: Technical Stack & Core Modules
 
 ### 1. Backend: NestJS Modular Monolith
 The backend prioritizes stability, domain segregation, and type safety:
@@ -77,7 +77,7 @@ The client-side infrastructure leverages modern performance optimization:
 
 ---
 
-## 🎨 Design System: Exaggerated Minimalism
+## Design System: Exaggerated Minimalism
 
 Lumen adopts a highly curated **"Exaggerated Minimalism"** design system defined in `@lumen/uikit`:
 
@@ -89,7 +89,7 @@ Lumen adopts a highly curated **"Exaggerated Minimalism"** design system defined
 
 ---
 
-## ⚙️ Development Setup & Configuration
+## Development Setup & Configuration
 
 ### Prerequisites
 * Node.js (v20+)
@@ -123,7 +123,7 @@ pnpm run dev           # Concurrently launches Web (Port 3001) and Admin (Port 3
 
 ---
 
-## 🐳 CI/CD & Deployment Architecture
+## CI/CD & Deployment Architecture
 
 Our deployment pipeline automates compilation and image generation:
 
