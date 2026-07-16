@@ -1,63 +1,90 @@
 # Lumen Platform
 
-![Lumen](https://via.placeholder.com/1200x300?text=Lumen+Platform)
+The Lumen platform is a comprehensive, scalable educational ecosystem structured to support modern web applications. This repository serves as the root workspace container, seamlessly linking our dedicated Frontend and Backend sub-repositories into a cohesive development environment.
 
-Welcome to the **Lumen** project workspace. Lumen is a comprehensive, scalable platform divided into robust frontend and backend architectures designed to handle modern web applications efficiently.
+## System Architecture
 
-This repository serves as the **Root Workspace (Monorepo Container)** that links our dedicated Frontend and Backend repositories.
+Lumen adopts a strict separation of concerns, dividing the platform into two distinct workspaces to ensure independent scalability, targeted deployment strategies, and clean domain boundaries.
 
-## 🏗 System Architecture
+```mermaid
+graph TD
+    Client[End Users] --> Web[Next.js Web Application]
+    AdminUser[Administrators] --> AdminSPA[Vite Admin SPA]
 
-The Lumen platform is architected with strict separation of concerns, utilizing dedicated repositories for frontend applications and backend services.
+    subgraph "Frontend Workspace (Turborepo)"
+        Web
+        AdminSPA
+        Web --> Shared[Shared Packages]
+        AdminSPA --> Shared
+        Shared --> |@lumen/uikit, @lumen/shared-api| APIClient[HTTP Client]
+    end
 
-### 1. Frontend Workspace (`/frontend`)
-The frontend is structured as a **Turborepo** monorepo containing multiple applications and shared packages.
-- **Web App**: A server-rendered application built with **Next.js** for maximum performance and SEO.
-- **Admin App**: A Single Page Application (SPA) built with **Vite** and **React** for internal management.
-- **Shared Packages**: Custom UI Kit, utility functions, hooks, and API clients shared across the applications.
-- **Deployment**: Configured with Docker multi-stage builds and automated CI/CD via GitHub Actions.
+    APIClient --> |REST API over HTTPS| Gateway
 
-### 2. Backend Workspace (`/backend`)
-The backend is a **Modular Monolith** built with **NestJS**.
-- **Architecture**: Domain-Driven Design (DDD) inspired modular structure.
-- **Core Technologies**: TypeScript, NestJS, TypeORM.
-- **Infrastructure**: Configured for Docker-based deployment with streamlined CI/CD pipelines via GitHub Actions.
+    subgraph "Backend Workspace (Modular Monolith)"
+        Gateway[NestJS API Gateway]
+        Gateway --> IAM[IAM Context]
+        Gateway --> Vocabulary[Vocabulary Context]
+        Gateway --> Quiz[Quiz Context]
+        
+        IAM -.-> DB[(PostgreSQL)]
+        Vocabulary -.-> DB
+        Quiz -.-> DB
+    end
+```
 
-## 🚀 Getting Started
+### Frontend Workspace
+The frontend relies on a **Turborepo** monorepo architecture, optimizing build times and promoting code reuse across multiple client applications.
+- **Web Application**: A Server-Side Rendered (SSR) application built with Next.js, optimized for search engine visibility and initial load performance.
+- **Admin Application**: A Single Page Application (SPA) built with React and Vite, designed for rich, highly interactive administrative workflows.
+- **Shared Infrastructure**: Both applications consume shared internal packages (`@lumen/uikit`, `@lumen/hooks`, `@lumen/shared-api`) to maintain UI consistency and enforce DRY principles.
 
-Since this root repository uses Git submodules (or separate nested repositories), you need to navigate to the respective directories to start the development servers.
+### Backend Workspace
+The backend utilizes a **Modular Monolith** architecture built on top of **NestJS**.
+- **Domain-Driven Design**: The codebase is segregated into distinct, bounded contexts (e.g., Identity and Access Management, Vocabulary, Quizzes) to maintain high cohesion and low coupling.
+- **Data Persistence**: TypeORM is utilized as the primary ORM, interacting with a PostgreSQL relational database.
+
+## Development Environment Setup
+
+This workspace aggregates the repositories. To begin development, navigate to the specific domains.
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v20+)
-- [pnpm](https://pnpm.io/) (v9+)
-- Docker & Docker Compose (Optional, for running infrastructure)
+- Node.js (v20 or higher)
+- pnpm (v9 or higher, corepack enabled)
+- Docker Desktop (for database and infrastructure services)
 
-### Running the Backend
+### Initializing the Backend
+The backend requires environment variables and database provisioning prior to startup.
 
 ```bash
 cd backend
 pnpm install
-pnpm run start:dev
+pnpm run db:up         # Assuming a docker-compose script exists for PostgreSQL
+pnpm run seed          # Populate the database with initial seed data
+pnpm run start:dev     # Starts the NestJS development server on port 3000
 ```
-*The backend will typically be available on `http://localhost:3000` (or as configured in your `.env`).*
 
-### Running the Frontend
+### Initializing the Frontend
+The frontend utilizes Turborepo to concurrently start all necessary development servers.
 
 ```bash
 cd frontend
 pnpm install
-pnpm run dev
+pnpm run dev           # Starts both Next.js (port 3001) and Vite (port 3002)
 ```
-*Turborepo will concurrently start both the `web` and `admin` development servers.*
 
-## 📦 CI/CD & Docker
+## Continuous Integration & Deployment
 
-Both the frontend and backend are fully containerized.
-- **GitHub Actions** workflows are set up in their respective `.github/workflows/deploy.yml` files.
-- Pushing to the `main` branch automatically builds Docker images (`lumen-web`, `lumen-admin`, `lumen-backend`) and pushes them to Docker Hub.
+The deployment pipeline relies on heavily optimized, multi-stage Docker builds executed via GitHub Actions.
 
-## 🎨 Design System
-Lumen adheres to a strict "Exaggerated Minimalism" design system tailored for B2B usage. It emphasizes high contrast, crisp typography, and avoids unnecessary decorative elements (like heavy gradients or excessive blurs). Documentation for the design system can be found in `frontend/documents/design-system.md`.
+- **Frontend Deployment**: Separated into two distinct Docker images (`lumen-web` and `lumen-admin`). The Next.js application utilizes the native `standalone` output for minimal container footprint, while the Vite SPA is served statically via an Nginx alpine image.
+- **Backend Deployment**: The NestJS application is pruned to include only production dependencies (`node_modules`) and compiled binaries.
+- **Registry**: Images are automatically built, tagged with their respective Git SHAs, and pushed to Docker Hub upon merges to the `main` branch.
 
----
-*Built with ❤️ for scalable and maintainable web development.*
+## Design System
+Lumen strictly adheres to a "Exaggerated Minimalism" design language, tailored for B2B environments. This system emphasizes:
+- High contrast and crisp typography.
+- Absence of decorative elements (e.g., gradients, heavy drop shadows, emojis).
+- Semantic color application (background alternating bands for layout structuring).
+
+Detailed documentation regarding design tokens and component usage can be found in `frontend/documents/design-system.md`.
