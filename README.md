@@ -16,10 +16,10 @@ graph TD
         AdminSPA
         Web --> Shared[Shared Packages]
         AdminSPA --> Shared
-        Shared --> |@lumen/uikit, @lumen/shared-api| APIClient[HTTP Client]
+        Shared --> |"@lumen/uikit, @lumen/shared-api"| APIClient[HTTP Client]
     end
 
-    APIClient --> |REST API over HTTPS| Gateway
+    APIClient --> |"REST API over HTTPS"| Gateway
 
     subgraph "Backend Workspace (Modular Monolith)"
         Gateway[NestJS API Gateway]
