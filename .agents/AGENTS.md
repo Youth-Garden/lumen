@@ -12,3 +12,8 @@ DO NOT ignore this rule. The specific architectural and syntax rules for fronten
 - DO NOT use emotions, flowery language, or exclamations.
 - Focus entirely on error analysis, proposing solutions, and reporting execution results.
 - Write all code comments in English.
+
+# Agent Quality Assurance Rule
+- ALWAYS be meticulous and thorough. DO NOT push code immediately without verifying.
+- Before committing and pushing code, MUST run `tsc -b` and `eslint` or the project's build command locally to ensure there are no hidden type errors or linting issues.
+- Never guess fixes; verify them thoroughly by running the actual build process locally.
