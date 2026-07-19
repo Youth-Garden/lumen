@@ -1,34 +1,42 @@
 # Lumen Platform - Intelligent English & TOEIC Learning Ecosystem
 
-Lumen is an advanced, all-in-one educational platform engineered to help learners master English and prepare for the TOEIC exam. By combining cognitive science principles with state-of-the-art web architectures, Lumen delivers a personalized, lightning-fast, and highly interactive learning experience.
-
----
+Lumen is an all-in-one educational platform that helps learners master English and prepare for the TOEIC exam. It combines cognitive-science learning methods with a modern web architecture to deliver a personalized, fast, and interactive experience.
 
 ## Core Philosophy & Methodology
 
-Lumen is designed around proven cognitive methodologies rather than passive consumption:
+Lumen is built around active learning rather than passive content consumption:
 
-1. **Smart Vocabulary Acquisition (Spaced Repetition)**: 
-   Utilizes an intelligent scheduling engine based on the **Ebbinghaus Forgetting Curve** (using the SuperMemo-2 / SM-2 algorithm via `ts-fsrs`). The system tracks memory retention intervals for each user and schedules flashcards at the exact moment recall is needed to achieve permanent retention.
-2. **Daily Dictation (Active Listening)**:
-   Focuses on phonics and speech tracking. Dictation exercises force learners to translate auditory signals directly into text, strengthening listening comprehension and spelling.
-3. **Standard TOEIC Mock Tests**:
-   A realistic simulator mimicking the official TOEIC test layout, featuring sections for Listening (Parts 1-4) and Reading (Parts 5-7), full scoring guides, timer constraints, and granular review explanations.
-4. **Grammar Studio & Active Reading**:
-   Allows readers to read real-world articles, instantly translate any word or phrase with one click, and study bite-sized grammar units with interactive micro-quizzes.
+1. Smart Vocabulary Acquisition (Spaced Repetition): an intelligent scheduler based on the Ebbinghaus Forgetting Curve (SM-2 algorithm via `ts-fsrs`) tracks memory retention per word and surfaces flashcards at the optimal recall moment.
+2. Daily Dictation (Active Listening): dictation exercises convert auditory signals into text, strengthening listening comprehension and spelling.
+3. Standard TOEIC Mock Tests: a realistic simulator with Listening (Parts 1-4) and Reading (Parts 5-7), full scoring, timers, and per-question explanations.
+4. Grammar Studio & Active Reading: read real-world articles, translate any word or phrase with one click, and study bite-sized grammar units with micro-quizzes.
 
----
+## Authentication (Passwordless)
 
-## System Architecture & Repository Structure
+Lumen does not use passwords. There are exactly two login methods:
 
-The platform is designed as a **submodule-based multi-repository** to enforce clean boundaries and independent deployment cycles.
+- Google OAuth2: the client sends a Google ID token; the server verifies it and logs the user in (creating the account on first use).
+- Email OTP: the user enters an email, receives a 6-digit code, and enters it to log in. The account is auto-created on first verification.
+
+Backend endpoints (prefix `/api/iam`):
+
+- `POST /email-otp/send` - generates a 6-digit OTP, stores a hashed copy in Redis (5-minute TTL), and emails it.
+- `POST /login` - verifies the OTP, auto-registers the user if needed (`AuthProvider.EMAIL`), and returns access + refresh tokens.
+- `POST /google-login` - verifies a Google ID token and returns tokens.
+- `POST /refresh`, `POST /logout`, `GET /me`, `GET /sessions`, `PUT /profile`.
+
+The `AuthProvider` enum is `GOOGLE` | `EMAIL`. The `password` column was removed from the `iam_users` table (see `backend/migrations/0001_drop_iam_users_password.sql`).
+
+## System Architecture
+
+The platform is organized as a parent repository with two workspaces: a NestJS backend and a Turborepo frontend monorepo.
 
 ```mermaid
 graph TD
-    Client[End Users] -->|NextJS App /api/| Web[Next.js Web Application]
+    Client[End Users] -->|Next.js App /api/| Web[Next.js Web Application]
     AdminUser[Administrators] -->|Vite SPA /api/| AdminSPA[Vite Admin SPA]
 
-    subgraph "Frontend Workspace (Turborepo - Monorepo)"
+    subgraph "Frontend Workspace (Turborepo Monorepo)"
         Web
         AdminSPA
         Web -.-> Shared["Shared UIKit (@lumen/uikit)"]
@@ -38,101 +46,81 @@ graph TD
     Web -->|HTTP/REST| Backend[NestJS Modular Monolith]
     AdminSPA -->|HTTP/REST| Backend
 
-    subgraph "Backend Workspace (NestJS - Modular Monolith)"
+    subgraph "Backend (NestJS Modular Monolith)"
         Backend --> IAM[IAM Module]
         Backend --> Vocab[Vocabulary Module]
         Backend --> Test[TOEIC Module]
         Backend --> Queue[BullMQ Queue]
-        
-        IAM --> DB[(PostgreSQL + Neon)]
+        IAM --> DB[(PostgreSQL / Neon)]
         Vocab --> DB
         Test --> DB
         Queue --> Redis[(Upstash Redis)]
     end
 ```
 
-### Repository Organization
-* **Root Repository (`lumen`)**: The master orchestration repository linking submodules.
-* **Backend Submodule (`backend` / `lumen-server`)**: A Modular Monolith API.
-* **Frontend Submodule (`frontend` / `lumen-web`)**: A Turborepo monorepo for client web interfaces.
+Repository layout:
 
----
+- `backend/` - Modular Monolith API (NestJS).
+- `frontend/` - Turborepo monorepo containing `apps/web`, `apps/admin`, and shared `packages/`.
 
-## Deep-Dive: Technical Stack & Core Modules
+## Technical Stack
 
-### 1. Backend: NestJS Modular Monolith
-The backend prioritizes stability, domain segregation, and type safety:
-* **Architecture**: **Modular Monolith** applying **Domain-Driven Design (DDD)** patterns. Each business capability (IAM, Quiz, TOEIC, Material, Vocabulary) is isolated into a separate module with low coupling.
-* **Database & ORM**: **PostgreSQL** (hosted on Neon) mapped via **TypeORM**. Database operations use transactional guarantees for complex state changes.
-* **Queue & Async Jobs**: **BullMQ** backed by **Upstash Redis** handles asynchronous long-running tasks, such as generating feedback, sending emails, or processing test scores.
-* **Mail Service**: Integrates **Resend** with precompiled **Handlebars** email templates (e.g., verification email, password reset).
-* **Keep-Alive Worker**: Built-in `KeepAliveService` that pings its own API endpoint every 15 minutes to prevent the free tier Render containers and serverless Neon Database from entering sleep mode.
+### Backend
+- NestJS 11 (Modular Monolith, DDD, CQRS via `@nestjs/cqrs`)
+- Fastify platform adapter
+- PostgreSQL via TypeORM (hosted on Neon)
+- BullMQ + Upstash Redis for background jobs (email sending, score processing)
+- JWT authentication (`@nestjs/jwt`) with access + refresh tokens stored as HTTP-only cookies
+- Resend for transactional email (verification OTP template)
+- Swagger / OpenAPI docs
+- Throttler for rate limiting
 
-### 2. Frontend: Turborepo Monorepo
-The client-side infrastructure leverages modern performance optimization:
-* **Orchestration**: **Turborepo** controls build caching, workspace pipelines, and task parallelization.
-* **apps/web**: Built with **Next.js** using the App Router. Utilizes Server-Side Rendering (SSR) for SEO-sensitive public pages, and dynamic client-side rendering for the interactive dashboard.
-* **apps/admin**: Built with **React** and **Vite** as a fast, light-weight SPA for content creators and system administrators.
-* **packages/uikit**: A shared internal design system package exporting typography, standard layouts, form elements, buttons, and stateful widgets.
+### Frontend
+- `apps/web`: Next.js 16 (App Router), React 19, Tailwind CSS v4, next-intl (i18n: en/vi), Framer Motion, TanStack Query, Zustand, React Hook Form + Zod, `@react-oauth/google`, base-ui. Installable as a PWA via `manifest.ts`.
+- `apps/admin`: Vite + React 19 SPA, React Router v7, TanStack Table, Tiptap rich-text editor, Recharts, oxlint.
+- Shared packages: `@lumen/uikit` (design system), `@lumen/shared-api` (API clients + DTOs), `@lumen/hooks`, `@lumen/utils`, `@lumen/eslint-config`, `@lumen/typescript-config`.
 
----
-
-## Design System: Exaggerated Minimalism
-
-Lumen adopts a highly curated **"Exaggerated Minimalism"** design system defined in `@lumen/uikit`:
-
-* **Color Palette**: Uses semantic CSS variables supporting full light/dark mode adjustments. Colors are clean, utilizing slate/zinc backgrounds paired with indigo primary accents to prevent visual fatigue.
-* **Shared Icon Registry**:
-  Instead of importing heavy icon packages everywhere, the frontend has a centralized `Icons` component that exports a strictly typed list of standard SVG assets (e.g., `users`, `book`, `star`, `trophy`).
-* **Micro-Animations**:
-  Leverages **Framer Motion** for subtle micro-interactions, such as slide-ins, spring-based hover translations on statistics blocks, and smooth accordion transitions.
-
----
-
-## Development Setup & Configuration
+## Development Setup
 
 ### Prerequisites
-* Node.js (v20+)
-* pnpm (v9+)
-* Docker Desktop
+- Node.js v20+
+- pnpm v9+
+- Docker Desktop (for local Postgres/Redis, optional if using hosted Neon/Upstash)
 
-### 1. Setting Up the Backend
-Navigate to the backend directory and set up environment variables:
-
+### Backend
 ```bash
 cd backend
-cp .env.example .env
+cp .env.example .env      # fill DATABASE_URL, JWT_*, GOOGLE_CLIENT_ID, UPSTASH_REDIS_URL, RESEND_API_KEY, R2_*, etc.
 pnpm install
+pnpm run db:up             # local Postgres/Redis via Docker (if used)
+pnpm run seed              # seed vocabulary, articles, tests, users
+pnpm run start:dev         # http://localhost:3000  (Swagger at /docs or /api)
 ```
 
-Configure your `.env` with the database credentials, then:
+### Frontend
 ```bash
-pnpm run db:up         # Provision local services (Postgres/Redis) via Docker
-pnpm run seed          # Seed database with initial vocabulary & study material
-pnpm run start:dev     # Start NestJS development server (Port 3000)
-```
-
-### 2. Setting Up the Frontend
-Navigate to the frontend directory:
-
-```bash
-cd ../frontend
+cd frontend
 pnpm install
-pnpm run dev           # Concurrently launches Web (Port 3001) and Admin (Port 3002)
+pnpm run dev               # starts apps/web (default Next port) and apps/admin (Vite port)
 ```
+Per-app scripts live in `apps/web` and `apps/admin` (see their READMEs).
 
----
+## Environment Variables (backend)
+- `NODE_ENV`, `PORT`, `COOKIE_SECRET`, `FRONTEND_URL`, `BACKEND_URL`
+- `JWT_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`
+- `DATABASE_URL`
+- `GOOGLE_CLIENT_ID`
+- `UPSTASH_REDIS_URL`
+- `RESEND_API_KEY`
+- `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`
 
-## CI/CD & Deployment Architecture
+## CI/CD & Deployment
+- Docker: `Dockerfile.web` (Next.js standalone) and `Dockerfile.admin` (Vite static + Nginx).
+- GitHub Actions builds images on merge to `main` and pushes to GitHub Container Registry (GHCR), then triggers a Render deploy hook.
+- A `Dockerfile.vercel` variant supports Vercel Fluid Compute to avoid platform lock-in.
 
-Our deployment pipeline automates compilation and image generation:
-
-1. **Docker Builds**:
-   * **`Dockerfile.web` (Next.js)**: Utilizes Next.js `standalone` output mode to shrink the final Docker image size down to <120MB, running in a minimal Alpine environment.
-   * **`Dockerfile.admin` (Vite SPA)**: Builds static assets and serves them through **Nginx Alpine**. It features a dynamic `PORT` template injector so it can run out-of-the-box on serverless port systems.
-2. **GitHub Actions Workflow**:
-   * Builds the Docker image upon every merge to `main`.
-   * Pushes the image to **GitHub Container Registry (GHCR)**.
-   * Sends a deploy trigger webhook (Render Deploy Hook) to update the running containers instantly without manual intervention.
-3. **Multi-Platform Portability**:
-   * Features dedicated `Dockerfile.vercel` configurations in the subfolders. This allows Vercel's Fluid Compute engine to build the same multi-stage Docker setup directly, preventing platform lock-in.
+## Workspaces
+- Backend README: `backend/README.md`
+- Frontend monorepo README: `frontend/README.md`
+- Web app README: `frontend/apps/web/README.md`
+- Admin app README: `frontend/apps/admin/README.md`
