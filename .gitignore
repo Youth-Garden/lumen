@@ -1,0 +1,8 @@
+# Root gitignore
+node_modules
+.DS_Store
+
+# Data generator isolation
+data-generator/
+data-generator/*
+*.mp3
