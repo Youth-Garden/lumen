@@ -1,11 +1,12 @@
 # Lumen Project Master Rules
 
-Before making any modifications or writing code in the `frontend` or `backend` directories, you MUST first read the specific guidelines for that section:
+Before making any modifications or writing code, consult the appropriate skill in `.agents/skills/`:
 
-- If you are working in `frontend`, read `frontend/AGENTS.md` first.
-- If you are working in `backend`, read `backend/AGENTS.md` first.
+- For feature planning and requirements analysis: consult the `ba` skill (`.agents/skills/ba/SKILL.md`).
+- For backend development: consult the `backend` skill (`.agents/skills/backend/SKILL.md`).
+- For frontend development: consult the `frontend` skill (`.agents/skills/frontend/SKILL.md`).
 
-DO NOT ignore this rule. The specific architectural and syntax rules for frontend and backend are kept strictly inside their respective source directories.
+DO NOT ignore these skills. The architectural, design system, and syntax rules for each domain are maintained inside their respective skill instructions.
 
 # Agent Communication Style Rule
 - Answer straightforwardly, concisely, and directly to the technical problem.

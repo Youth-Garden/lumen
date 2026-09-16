@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/claude.json",
+  "name": "Lumen",
+  "description": "Lumen platform - English learning platform with DDD architecture",
+  "skills": [
+    {
+      "name": "frontend",
+      "path": ".agents/skills/frontend/SKILL.md",
+      "description": "Frontend development rules: React/Next.js, design system, UI/UX, i18n, hooks, components, Zustand, TanStack Query"
+    },
+    {
+      "name": "backend",
+      "path": ".agents/skills/backend/SKILL.md",
+      "description": "Backend development rules: NestJS DDD/CQRS, TypeORM, PostgreSQL, Fastify, Kafka, BullMQ, class-validator, class-transformer"
+    },
+    {
+      "name": "ba",
+      "path": ".agents/skills/ba/SKILL.md",
+      "description": "Business Analyst skill: Feature planning, requirements analysis, feature documents, implementation tracking"
+    }
+  ],
+  "rules": {
+    "always": [
+      "Read the appropriate skill in .agents/skills/ before making modifications or writing code",
+      "For feature planning: consult the ba skill (.agents/skills/ba/SKILL.md)",
+      "For backend development: consult the backend skill (.agents/skills/backend/SKILL.md)",
+      "For frontend development: consult the frontend skill (.agents/skills/frontend/SKILL.md)"
+    ],
+    "communication": {
+      "style": "straightforward, concise, technical",
+      "noEmotions": true,
+      "noFloweryLanguage": true
+    },
+    "quality": {
+      "alwaysVerify": true,
+      "neverPushWithoutBuild": true,
+      "runTypeCheckBeforeCommit": true,
+      "runLintBeforeCommit": true
+    },
+    "prohibitions": {
+      "noWorkarounds": true,
+      "noAntiPatterns": true,
+      "noHardcode": true,
+      "noAnyType": true,
+      "noBrowserAutomation": true,
+      "noHardcodedText": true,
+      "noRedundantCountBadges": true
+    }
+  },
+  "agent": {
+    "name": "claude",
+    "description": "Primary coding agent for Lumen project",
+    "skills": ["frontend", "backend", "ba"]
+  }
+}

@@ -1,11 +1,11 @@
 ---
-name: feature-planning
-description: Workflow and standardized format for planning new features in Lumen, saving feature plan documents under documents/features/, and tracking implementation checklists.
+name: ba
+description: Workflow and standardized format for feature planning, business requirements analysis, saving feature plan documents under documents/features/, and tracking implementation checklists in Lumen.
 ---
 
-# Feature Planning Skill — Lumen
+# Business Analyst & Feature Planning Skill — Lumen
 
-This skill defines the mandatory workflow and standardized format for planning, documenting, and tracking features in the Lumen codebase.
+This skill defines the mandatory workflow and standardized format for feature planning, business analysis, documenting, and tracking features in the Lumen codebase.
 
 ## 1. Overview & Core Rules
 
@@ -23,9 +23,9 @@ Every file in `documents/features/[feature-name].md` MUST strictly follow this m
 # Feature Plan: [Feature Name]
 
 > **Status**: [Draft | In Review | Approved | In Progress | Completed]
-> **Author**: Antigravity Pair Programmer
+> **Author**: Antigravity Pair Programmer / BA
 > **Date**: YYYY-MM-DD
-> **Target Module**: [backend/src/contexts/... | frontend/apps/web/src/features/...]
+> **Target Module**: [backend/src/modules/... | frontend/src/features/...]
 
 ---
 
@@ -81,15 +81,15 @@ Briefly describe the purpose of the feature, the problem it solves, and the busi
 | Action | File Path | Purpose |
 | :--- | :--- | :--- |
 | `[NEW]` | `backend/src/...` | Command / DTO creation |
-| `[MODIFY]` | `frontend/apps/web/src/...` | UI component update |
+| `[MODIFY]` | `frontend/src/...` | UI component update |
 
 ---
 
 ## 6. Implementation & Quality Verification Checklist
 
-- [ ] Backend build check: `cmd.exe /c "pnpm run build"` in `backend/` passes with 0 errors.
-- [ ] Frontend build check: `cmd.exe /c "pnpm --filter web build"` in `frontend/` passes with 0 errors.
-- [ ] No `any` type bypasses (use `Record<string, unknown>`).
+- [ ] Backend build check: `tsc --noEmit` or build check in `backend/` passes with 0 errors.
+- [ ] Frontend build check: `tsc --noEmit` or build check in `frontend/` passes with 0 errors.
+- [ ] No `any` type bypasses (use `Record<string, unknown>` or explicit narrowing).
 - [ ] No manual re-styling of `<Button>` components.
 - [ ] All custom React hooks <= 300 lines of code.
 - [ ] Clean domain separation between `vocabulary`, `study`, `progress`, etc.
@@ -113,6 +113,6 @@ Highlight potential edge cases, breaking changes, or risks.
    - Follow the File Change Matrix step-by-step.
    - Keep custom hooks <= 300 lines by placing data logic in pure utility functions in `utils/`.
 3. **Verifying & Completing**:
-   - Run `pnpm run build` in `backend` and `pnpm --filter web build` in `frontend`.
+   - Run type checks and build scripts in `backend` and `frontend`.
    - Mark all checklist items as completed `[x]`.
    - Change `Status` to `Completed`.
