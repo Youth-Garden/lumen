@@ -218,11 +218,11 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
 
 ## 8. Strict Zero-Workaround & Zero-Anti-Pattern Rule (MANDATORY)
 
-- **TUYỆT ĐỐI CẤM MỌI HÌNH THỨC WORKAROUND HOẶC ANTI-PATTERN**:
-  1. **Workarounds & Compatibility Aliases**: Tuyệt đối KHÔNG tạo alias bridge (`export const DECK_REPOSITORY = FOLDER_REPOSITORY;`) hay wrapper functions để né tránh refactor.
-  2. **Phá vỡ ranh giới DDD (Layer Leakage)**: Tuyệt đối KHÔNG để TypeORM Entity lọt vào Domain Aggregate, Application DTOs hay Controllers.
-  3. **Ép kiểu `any` và Type Bypasses**: Tuyệt đối KHÔNG dùng `any`, `as any` hay lint suppressions.
-  4. **Trộn lẫn I/O Boundaries**: Tuyệt đối KHÔNG dùng bare interfaces cho DTOs qua network boundary; bắt buộc dùng classes có `class-validator` và `class-transformer`.
+- **ABSOLUTELY NO WORKAROUNDS OR ANTI-PATTERNS**:
+  1. **Workarounds & Compatibility Aliases**: NEVER create alias bridges (`export const DECK_REPOSITORY = FOLDER_REPOSITORY;`) or wrapper functions to avoid refactoring.
+  2. **Layer Leakage (Breaking DDD Boundaries)**: NEVER allow TypeORM entities to leak into domain aggregates, application DTOs, or controllers.
+  3. **Careless `any` and Type Bypasses**: NEVER use `any`, `as any`, or lint suppressions.
+  4. **Mixing I/O Boundaries**: NEVER use bare interfaces for DTOs across network boundaries; always use validated classes with `class-validator` and `class-transformer`.
 
 ---
 
@@ -234,35 +234,35 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
 
 ## 10. Strict Zero-Workaround & Zero-Anti-Pattern Rule (MANDATORY)
 
-- **TUYỆT ĐỐI CẤM MỌI HÌNH THỨC WORKAROUND HOẶC ANTI-PATTERN**:
-  - Nếu KHÔNG CÓ yêu cầu cụ thể, rõ ràng và trực tiếp từ người dùng trong prompt hiện tại, BẤT KỲ anti-pattern hay workaround nào đều TUYỆT ĐỐI KHÔNG ĐƯỢC PHÉP SỬ DỤNG.
-  - Tuyệt đối không chọn giải pháp "đi tắt" (shortcut), chắp vá tạm thời (quick fix/hack), hay lách qua các giới hạn kỹ thuật bằng các biện pháp phản kiến trúc.
-  - Mọi giải pháp bắt buộc phải tuân thủ chuẩn Clean Architecture, Single Source of Truth, và Separation of Concerns ngay từ đầu.
-  - Danh mục các Anti-Patterns & Workarounds BỊ CẤM TRIỆT ĐỂ:
-    1. **Tầng Service can thiệp UI (Mixing Presentation & Data Layer)**: Tầng HTTP Client / Service (`CoreService`, API services) tuyệt đối KHÔNG được import UI component, KHÔNG bắn `toast`, KHÔNG parse cookie/DOM/URL để đoán ngữ cảnh UI, KHÔNG điều hướng bằng `window.location`. Tầng Service chỉ tương tác với HTTP, mappers và Domain State (Zustand store / Events).
-    2. **Duplicate Dictionary / Ad-hoc i18n**: Tuyệt đối KHÔNG tự viết dictionary object riêng, KHÔNG tự chế hàm dịch trong service/utils. Toàn bộ text hiển thị BẮT BUỘC phải tập trung tại `messages/{locale}.json` và được render qua `useTranslations` của `next-intl` trong UI layer.
-    3. **Workarounds & Compatibility Aliases**: Tuyệt đối KHÔNG tạo alias bridge (`export const useCreateDeck = useCreateFolder;`, `export type Deck = Folder;`) để né tránh refactor. Phải refactor 100% triệt để.
-    4. **Coupled / Ping-Pong State Hooks**: Tuyệt đối KHÔNG chia cắt cùng một luồng state ra nhiều hooks phụ thuộc chéo lẫn nhau (hook A gọi hook B, hook B lại bắn callback ngược về hook A). Phải gom state vào single source of truth và dùng Pure Functions.
-    5. **Ép kiểu vô tội vạ (Type Bypasses)**: Tuyệt đối KHÔNG dùng `any`, `as unknown as T` để qua mặt TypeScript compiler.
+- **ABSOLUTELY NO WORKAROUNDS OR ANTI-PATTERNS**:
+  - Unless explicitly requested by the user in the current prompt, ANY anti-pattern or workaround is STRICTLY FORBIDDEN.
+  - Never take shortcuts, apply temporary hacks, or bypass technical constraints through anti-architectural patches.
+  - All solutions MUST strictly adhere to Clean Architecture, Single Source of Truth, and Separation of Concerns from the start.
+  - Strictly Forbidden Anti-Patterns & Workarounds:
+    1. **Service Layer Leaking into UI (Mixing Presentation & Data Layer)**: The HTTP Client / Service layer (`CoreService`, API services) MUST NOT import UI components, MUST NOT trigger `toast`, MUST NOT parse cookies/DOM/URL to guess UI state, and MUST NOT navigate via `window.location`. Services interact solely with HTTP, mappers, and domain state (Zustand store / Events).
+    2. **Duplicate Dictionary / Ad-hoc i18n**: NEVER define custom dictionary objects or custom translation functions in services/utils. All display copy MUST be centralized in `messages/{locale}.json` and rendered via `useTranslations` from `next-intl` in the UI layer.
+    3. **Workarounds & Compatibility Aliases**: NEVER create alias bridges (`export const useCreateDeck = useCreateFolder;`, `export type Deck = Folder;`) to avoid refactoring. Refactor thoroughly across the entire codebase.
+    4. **Coupled / Ping-Pong State Hooks**: NEVER split a single state flow into mutually interdependent hooks (hook A calls hook B, and hook B sends callbacks back to hook A). Centralize state in a Single Source of Truth and use Pure Functions.
+    5. **Careless Type Bypasses**: NEVER use `any`, `as any`, or `as unknown as T` to bypass the TypeScript compiler.
 
-## 11. Strict Prohibition on Opening Browser for Testing (Bắt buộc)
+## 11. Strict Prohibition on Opening Browser for Testing (MANDATORY)
 
-- **TUYỆT ĐỐI KHÔNG ĐƯỢC MỞ BROWSER** (không dùng browser_subagent, puppeteer hay bất kỳ browser automation nào) để kiểm tra giao diện hoặc tính năng. Các trang/tính năng yêu cầu đăng nhập của người dùng mà agent không thể đăng nhập được.
-- Mọi kiểm tra tính đúng đắn phải thực hiện qua việc đọc hiểu code, phân tích logic, chạy `tsc --noEmit`, chạy `eslint` hoặc test code trực tiếp trong terminal, tuyệt đối không tự mở trình duyệt.
+- **ABSOLUTELY NEVER OPEN A BROWSER** (do not use `browser_subagent`, Puppeteer, or any browser automation) to test UI or features. Pages and features require user authentication that the agent cannot perform.
+- All correctness verifications must be performed via code inspection, logic analysis, running `tsc --noEmit`, running `eslint`, or terminal tests.
 
 ## 12. Strict Constants, Enums & Type Certainty Rule (MANDATORY)
 
-- **Chống Hardcode & Magic Values**: Tuyệt đối KHÔNG hardcode magic strings, numbers hay phím tắt. Tất cả phím tắt (shortcuts), configs, ratings BẮT BUỘC định nghĩa qua Enum/Constant rõ nghĩa (ví dụ `StudyShortcutKey { FLIP_SPACE = 'Space', MASTERED = '1', ... }`).
-- **Chống Lạm Dụng `?` và `| null` Vô Tội Vạ**: Phải chắc chắn về data schema. Tuyệt đối không gắn `?` hoặc `| null` bừa bãi khi trường đó đã được đảm bảo chắc chắn (như mappers luôn khởi tạo array rỗng `[]` thì type là `T[]`). Chỉ dùng `?` khi thực sự optional và `| null` khi backend cam kết trả `null` có chủ đích. Tuyệt đối không viết `?: string | null`.
+- **No Hardcode & Magic Values**: NEVER hardcode magic strings, numbers, or shortcuts. All shortcuts, configs, and ratings MUST be defined via explicit Enums/Constants (e.g. `StudyShortcutKey { FLIP_SPACE = 'Space', MASTERED = '1', ... }`).
+- **No Careless `?` and `| null` Abuse**: Ensure exact data schemas. Never add `?` or `| null` carelessly when a field is guaranteed (e.g. if mappers always return empty arrays `[]`, the type is `T[]`). Only use `?` when genuinely optional and `| null` when backend intentionally sends `null`. Never write `?: string | null`.
 
 ## 13. Service & API Domain Separation Rule (MANDATORY)
 
-- Các module dịch vụ trong `services/` phải phân tách độc lập theo đúng domain nghiệp vụ. Tuyệt đối KHÔNG gộp chung các API/endpoint khác domain vào cùng một service.
-- Ví dụ: Domain `vocabulary` (từ vựng, thư mục, flashcard CRUD) và domain `study` (flashcard đến hạn ôn tập `dueFlashcards`, nộp kết quả ôn tập `reviewFlashcard`, session học) BẮT BUỘC phải tách riêng thành hai service riêng biệt (`services/vocabulary` và `services/study`), đồng thời các hooks tương ứng cũng phải nằm tách bạch trong feature tương ứng (`features/vocabulary/hooks` và `features/study/hooks`).
+- Service modules in `services/` MUST be strictly separated along business domain boundaries. Never merge multiple domains into a single service.
+- For example: Domain `vocabulary` (words, folders, flashcard CRUD) and domain `study` (`dueFlashcards`, `reviewFlashcard`, study sessions) MUST remain two separate services (`services/vocabulary` and `services/study`), with corresponding hooks separated in their respective features (`features/vocabulary/hooks` and `features/study/hooks`).
 - **Clean Service Import Convention (MANDATORY)**:
-  - Khi import types, models, keys, hay functions từ một domain service, BẮT BUỘC phải import trực tiếp từ root module của domain đó (ví dụ: `import { VocabularyWord } from '@/services/vocabulary';`, `import { User } from '@/services/auth';`, `import { DueFlashcard } from '@/services/study';`).
-  - TUYỆT ĐỐI KHÔNG import sâu vào các file con nội bộ như `@/services/vocabulary/vocabulary.types`, `@/services/study/study.types`, `@/services/auth/auth.types` hay `@/services/progress/progress.types`.
-  - Mọi module service BẮT BUỘC phải re-export toàn bộ types, keys, service qua file `index.ts` của domain đó.
+  - When importing types, models, keys, or functions from a domain service, MUST import directly from the root module of that domain (e.g. `import { VocabularyWord } from '@/services/vocabulary';`, `import { User } from '@/services/auth';`, `import { DueFlashcard } from '@/services/study';`).
+  - NEVER import deep internal files like `@/services/vocabulary/vocabulary.types`, `@/services/study/study.types`, `@/services/auth/auth.types`, or `@/services/progress/progress.types`.
+  - Every service module MUST re-export all types, keys, and services via its root `index.ts`.
 
 ## 14. Feature Planning & Business Analysis (From .agents/AGENTS.md)
 
@@ -281,3 +281,9 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
 - **Careless Type Bypasses**: No `any` or `as unknown as T` in components.
 - **No Hardcoded Specialized Content**: Keep platform features generic and neutral. Specialized domain terms (TOEIC, IELTS) belong ONLY inside dedicated modules.
 - **No Browser Automation for Testing**: NEVER open a browser (`browser_subagent`, Puppeteer).
+
+## 15. Shared DTO Inheritance, SOLID & Generic Code Reuse (MANDATORY)
+
+- **Shared DTO Inheritance**: All request/query endpoints with pagination (`page`, `limit`) MUST inherit `PaginationDto` (or `BaseFilterDto` if supporting `search`, `sortBy`, `sortOrder`) from `shared/presentation/dtos/pagination.dto.ts`. NEVER declare loose query params `@Query('page')` or duplicate pagination fields in custom DTOs.
+- **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
+- **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.

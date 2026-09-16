@@ -8,89 +8,116 @@ Before making any modifications or writing code, consult the appropriate skill i
 
 DO NOT ignore these skills. The architectural, design system, and syntax rules for each domain are maintained inside their respective skill instructions.
 
+---
+
 # Agent Communication Style Rule
 - Answer straightforwardly, concisely, and directly to the technical problem.
 - DO NOT use emotions, flowery language, or exclamations.
 - Focus entirely on error analysis, proposing solutions, and reporting execution results.
 - Write all code comments in English.
 
+---
+
 # Strict Code Commenting Rule
-- TUYỆT ĐỐI KHÔNG comment linh tinh, tự hiển nhiên (không giải thích tên biến, tên hàm, luồng chạy thông thường, props, JSX...).
-- CHỈ ĐƯỢC PHÉP comment ở những vị trí thực sự quan trọng, xử lý logic cực khó hoặc một function cực kỳ phức tạp.
-- Nếu không thuộc diện cực khó/cực kỳ phức tạp, TUYỆT ĐỐI KHÔNG thêm bất kỳ comment nào.
-- Mọi code comment (nếu có) bắt buộc viết bằng tiếng Anh ngắn gọn, chuẩn xác.
+- ABSOLUTELY NO redundant or self-evident comments (do not explain variable names, function names, standard execution flow, props, JSX...).
+- Comments are ONLY permitted at genuinely critical points handling exceptionally complex logic or complex algorithms.
+- Unless the code is exceptionally complex, DO NOT add any comments.
+- All code comments (if any) MUST be written in concise, accurate English.
+
+---
 
 # Agent Quality Assurance Rule
 - ALWAYS be meticulous and thorough. DO NOT push code immediately without verifying.
 - Before committing and pushing code, MUST run `tsc -b` and `eslint` or the project's build command locally to ensure there are no hidden type errors or linting issues.
 - Never guess fixes; verify them thoroughly by running the actual build process locally.
 
+---
+
 # Strict Zero-Workaround & Zero-Anti-Pattern Rule (MANDATORY)
-- **TUYỆT ĐỐI CẤM MỌI HÌNH THỨC WORKAROUND HOẶC ANTI-PATTERN**:
-  - Nếu KHÔNG CÓ yêu cầu cụ thể, rõ ràng và trực tiếp từ người dùng trong prompt hiện tại, BẤT KỲ anti-pattern hay workaround nào đều TUYỆT ĐỐI KHÔNG ĐƯỢC PHÉP SỬ DỤNG.
-  - Tuyệt đối không chọn giải pháp "đi tắt" (shortcut), chắp vá tạm thời (quick fix/hack), hay lách qua các giới hạn kỹ thuật bằng các biện pháp phản kiến trúc.
-  - Mọi giải pháp bắt buộc phải tuân thủ chuẩn Clean Architecture, Single Source of Truth, và Separation of Concerns ngay từ đầu.
-  - Danh mục các Anti-Patterns & Workarounds BỊ CẤM TRIỆT ĐỂ:
-    1. **Tầng Service can thiệp UI (Mixing Presentation & Data Layer)**: Tầng HTTP Client / Service (`CoreService`, API services) tuyệt đối KHÔNG được import UI component, KHÔNG bắn `toast`, KHÔNG parse cookie/DOM/URL để đoán ngữ cảnh UI, KHÔNG điều hướng bằng `window.location`. Tầng Service chỉ tương tác với HTTP, mappers và Domain State (Zustand store / Events).
-    2. **Duplicate Dictionary / Ad-hoc i18n**: Tuyệt đối KHÔNG tự viết dictionary object riêng, KHÔNG tự chế hàm dịch trong service/utils. Toàn bộ text hiển thị BẮT BUỘC phải tập trung tại `messages/{locale}.json` và được render qua `useTranslations` của `next-intl` trong UI layer.
-    3. **Workarounds & Compatibility Aliases**: Tuyệt đối KHÔNG tạo alias bridge (`export const useCreateDeck = useCreateFolder;`, `export type Deck = Folder;`) để né tránh refactor. Phải refactor 100% triệt để.
-    4. **Coupled / Ping-Pong State Hooks**: Tuyệt đối KHÔNG chia cắt cùng một luồng state ra nhiều hooks phụ thuộc chéo lẫn nhau (hook A gọi hook B, hook B lại bắn callback ngược về hook A). Phải gom state vào single source of truth và dùng Pure Functions.
-    5. **Ép kiểu vô tội vạ (Type Bypasses)**: Tuyệt đối KHÔNG dùng `any`, `as unknown as T` để qua mặt TypeScript compiler.
+- **ABSOLUTELY NO WORKAROUNDS OR ANTI-PATTERNS**:
+  - Unless explicitly requested by the user in the current prompt, ANY anti-pattern or workaround is STRICTLY FORBIDDEN.
+  - Never take shortcuts, apply temporary quick fixes/hacks, or bypass technical constraints through anti-architectural patches.
+  - All solutions MUST strictly adhere to Clean Architecture, Single Source of Truth, and Separation of Concerns from the start.
+  - Strictly Forbidden Anti-Patterns & Workarounds:
+    1. **Service Layer Leaking into UI (Mixing Presentation & Data Layer)**: The HTTP Client / Service layer (`CoreService`, API services) MUST NOT import UI components, MUST NOT trigger `toast`, MUST NOT parse cookies/DOM/URL to guess UI state, and MUST NOT navigate via `window.location`. Services interact solely with HTTP, mappers, and domain state (Zustand store / Events).
+    2. **Duplicate Dictionary / Ad-hoc i18n**: NEVER define custom dictionary objects or custom translation functions in services/utils. All display copy MUST be centralized in `messages/{locale}.json` and rendered via `useTranslations` from `next-intl` in the UI layer.
+    3. **Workarounds & Compatibility Aliases**: NEVER create alias bridges (`export const useCreateDeck = useCreateFolder;`, `export type Deck = Folder;`) to avoid refactoring. Refactor thoroughly across the entire codebase.
+    4. **Coupled / Ping-Pong State Hooks**: NEVER split a single state flow into mutually interdependent hooks (hook A calls hook B, and hook B sends callbacks back to hook A). Centralize state in a Single Source of Truth and use Pure Functions.
+    5. **Careless Type Bypasses**: NEVER use `any`, `as any`, or `as unknown as T` to bypass the TypeScript compiler.
+
+---
 
 # Content & Copywriting Neutrality Rule
 - NEVER inject or hardcode specialized domain terms (such as "TOEIC", "IELTS", specific certifications, or specialized test names) into general application copy, section titles, headers, badges, or input placeholders.
 - General features, vocabulary, flashcards, decks/folders, dashboard, settings, and UI components must remain completely generic, neutral, and versatile.
 - Specialized domain terms may ONLY be used within modules that are strictly dedicated to that specific purpose (e.g., an actual TOEIC mock test module).
-
 - NEVER append redundant count numbers or pill badges (e.g. `(0)`, `[count]`, or `<span ...>{items.length}</span>`) next to section titles, headings, or category labels unless explicitly requested by the user. Section headers must remain clean and minimalist.
 
-## Strict UI Aesthetics & Anti-Border / Anti-Card-Clutter Convention (MANDATORY)
+---
 
-- **Tuyệt đối HẠN CHẾ dùng Border**: Tuyệt đối KHÔNG lạm dụng các đường viền cứng (`border`, `border border-border/80`, `border-border/50`). Thiết kế của Lumen hướng đến sự phẳng, thoáng đãng, tinh tế và hiện đại.
-- **Tuyệt đối KHÔNG lạm dụng Background Card (Anti-Card-Clutter / Anti-Box-in-Box)**:
-  - KHÔNG bọc từng hàng (row), từng đoạn văn bản, hoặc từng mục lựa chọn vào các hộp nền riêng biệt (`bg-muted/20`, `bg-muted/30`, `rounded-2xl border...`).
-  - Tránh triệt để tình trạng "hộp lồng trong hộp" (box-in-box) gây ngột ngạt và rối rắm giao diện.
-  - Sử dụng trực tiếp bề mặt nền của Dialog / Page kết hợp với khoảng cách (padding/gap) và phân cấp kiểu chữ (typography hierarchy) tự nhiên, rõ ràng.
+# Strict UI Aesthetics & Anti-Border / Anti-Card-Clutter Convention (MANDATORY)
+- **Strictly Limit Border Usage**: NEVER overuse hard borders (`border`, `border border-border/80`, `border-border/50`). Lumen's design language is flat, airy, subtle, and modern.
+- **Strictly Avoid Background Card Overuse (Anti-Card-Clutter / Anti-Box-in-Box)**:
+  - DO NOT wrap individual rows, paragraphs, or list items in separate background boxes (`bg-muted/20`, `bg-muted/30`, `rounded-2xl border...`).
+  - Strictly eliminate "box-in-box" nesting that creates visual clutter and claustrophobic layouts.
+  - Use native background surfaces of Dialogs / Pages combined with natural spacing (padding/gap) and typography hierarchy.
 
-# Strict Prohibition on Opening Browser for Testing (Bắt buộc)
-- TUYỆT ĐỐI KHÔNG ĐƯỢC MỞ BROWSER (không dùng browser_subagent, puppeteer hay bất kỳ browser automation nào) để kiểm tra giao diện hoặc tính năng. Các trang/tính năng yêu cầu đăng nhập của người dùng mà agent không thể đăng nhập được.
-- Mọi kiểm tra tính đúng đắn phải thực hiện qua việc đọc hiểu code, phân tích logic, chạy `tsc --noEmit`, chạy `eslint` hoặc test code trực tiếp trong terminal, tuyệt đối không tự mở trình duyệt.
+---
 
+# Strict Prohibition on Opening Browser for Testing (MANDATORY)
+- ABSOLUTELY NEVER OPEN A BROWSER (do not use `browser_subagent`, Puppeteer, or any browser automation) to test UI or features. Pages and features require user authentication that the agent cannot perform.
+- All correctness verifications must be performed via code inspection, logic analysis, running `tsc --noEmit`, running `eslint`, or terminal tests.
+
+---
 
 # Button Styling Rule
-- **No Manual Button Re-styling (Prioritize Variants)**: Tuyệt đối KHÔNG tự ý re-style, không ghi đè style thủ công (như tùy tiện ghi đè `border`, `rounded`, `bg`, `shadow`, padding) lên component `<Button>`. Component `Button` của hệ thống đã có đầy đủ các `variant` (`default`, `secondary`, `outline`, `ghost`, `subtle`, `destructive`) và `size` (`default`, `sm`, `lg`, `icon`, `icon-sm`). BẮT BUỘC chỉ sử dụng trực tiếp các `variant` và `size` có sẵn, không can thiệp class ghi đè phá vỡ design system.
+- **No Manual Button Re-styling (Prioritize Variants)**: NEVER arbitrarily re-style or manually override styles (e.g. overriding `border`, `rounded`, `bg`, `shadow`, padding) on `<Button>`. The system's `Button` component already provides a full set of `variant`s (`default`, `secondary`, `outline`, `ghost`, `subtle`, `destructive`) and `size`s (`default`, `sm`, `lg`, `icon`, `icon-sm`). You MUST use existing `variant` and `size` props directly.
+
+---
 
 # Strict Directory Structure, Re-export, and Type Placement Rule (MANDATORY)
 - **Separation of Concerns by Directory**:
-  - `components/`: CHỈ chứa UI components (`.tsx`). Tuyệt đối KHÔNG đặt constants, animation variants, configs, utils hay types vào thư mục `components/`. Khi cần, BẮT BUỘC phải tạo thư mục riêng phù hợp (`constants/`, `hooks/`, `types/`, `utils/`).
-  - `constants/`: Chứa hằng số, static configs, animation variants (ví dụ `animations.ts`).
-  - `hooks/`: Chứa React custom hooks (`use-[name].ts`).
-  - `types/`: Chứa domain types, feature models, shared interfaces (`[feature].types.ts`).
+  - `components/`: MUST contain React UI components (`.tsx`) ONLY. Never place non-component files (constants, animation variants, configs, utils, types) inside `components/`. Create dedicated folders instead (`constants/`, `hooks/`, `types/`, `utils/`).
+  - `constants/`: Holds constants, static configs, and animation variants (e.g. `animations.ts`).
+  - `hooks/`: Holds React custom hooks (`use-[name].ts`).
+  - `types/`: Holds domain types, feature models, and shared interfaces (`[feature].types.ts`).
 - **Re-export Convention**:
-  - Hooks và Constants BẮT BUỘC phải được re-export tập trung qua file `index.ts` của thư mục đó (ví dụ: `hooks/index.ts`, `constants/index.ts`).
-  - Components KHÔNG CẦN và KHÔNG re-export qua `index.ts`, import trực tiếp từ file component để tối ưu tree-shaking và code-splitting.
+  - Hooks and Constants MUST be re-exported centrally through an `index.ts` file in their own directory (e.g. `hooks/index.ts`, `constants/index.ts`).
+  - Components DO NOT re-export via `index.ts`; import directly from component files to preserve tree-shaking and code-splitting.
 - **Type Placement Convention**:
-  - Hook-specific props/return (`Use[Name]Props`, `Use[Name]Return`) có thể định nghĩa trong file hook đó hoặc file `use-[name].types.ts` (nếu quá dài).
-  - Domain / Entity / Shared Types (như `MissedWordStat`, models, data structures) TUYỆT ĐỐI KHÔNG để trong thư mục `hooks/`. BẮT BUỘC phải đặt trong thư mục `types/` của module.
+  - Hook-specific props/return types (`Use[Name]Props`, `Use[Name]Return`) should be defined directly in that hook's file (or in `use-[name].types.ts` if too large).
+  - Domain / Entity / Shared Types (such as `MissedWordStat`, models, data structures) MUST NEVER live inside `hooks/`. They MUST be placed in the module's `types/` directory.
+
+---
 
 # Strict Service & API Domain Separation Rule (MANDATORY)
-- Các module dịch vụ trong `services/` phải phân tách độc lập theo đúng domain nghiệp vụ. Tuyệt đối KHÔNG gộp chung các API/endpoint khác domain vào cùng một service.
-- Ví dụ: Domain `vocabulary` (từ vựng, thư mục, flashcard CRUD) và domain `study` (flashcard đến hạn ôn tập `dueFlashcards`, nộp kết quả ôn tập `reviewFlashcard`, session học) BẮT BUỘC phải tách riêng thành hai service riêng biệt (`services/vocabulary` và `services/study`), đồng thời các hooks tương ứng cũng phải nằm tách bạch trong feature tương ứng (`features/vocabulary/hooks` và `features/study/hooks`).
+- Service modules in `services/` MUST be strictly separated along business domain boundaries. Never merge multiple domains into a single service.
+- For example: Domain `vocabulary` (words, folders, flashcard CRUD) and domain `study` (`dueFlashcards`, `reviewFlashcard`, study sessions) MUST remain two separate services (`services/vocabulary` and `services/study`), with corresponding hooks separated in their respective features (`features/vocabulary/hooks` and `features/study/hooks`).
 - **Clean Service Import Convention (MANDATORY)**:
-  - Khi import types, models, keys, hay functions từ một domain service, BẮT BUỘC phải import trực tiếp từ root module của domain đó (ví dụ: `import { VocabularyWord, Folder } from '@/services/vocabulary';`, `import { User } from '@/services/auth';`, `import { DueFlashcard } from '@/services/study';`).
-  - TUYỆT ĐỐI KHÔNG import sâu vào các file con nội bộ như `@/services/vocabulary/vocabulary.types`, `@/services/study/study.types`, `@/services/auth/auth.types` hay `@/services/progress/progress.types`.
-  - Mọi module service BẮT BUỘC phải re-export toàn bộ types, keys, service qua file `index.ts` của domain đó.
+  - When importing types, models, keys, or functions from a domain service, MUST import directly from the root module of that domain (e.g. `import { VocabularyWord, Folder } from '@/services/vocabulary';`, `import { User } from '@/services/auth';`, `import { DueFlashcard } from '@/services/study';`).
+  - NEVER import deep internal files like `@/services/vocabulary/vocabulary.types`, `@/services/study/study.types`, `@/services/auth/auth.types`, or `@/services/progress/progress.types`.
+  - Every service module MUST re-export all types, keys, and services via its root `index.ts`.
+
+---
 
 # Strict Constants, Enums & Type Certainty Rule (MANDATORY)
-- **Chống Hardcode & Magic Values**: Tuyệt đối KHÔNG hardcode magic strings, numbers hay phím tắt. Tất cả phím tắt (shortcuts), configs, ratings BẮT BUỘC định nghĩa qua Enum/Constant rõ nghĩa (ví dụ `StudyShortcutKey { FLIP_SPACE = 'Space', MASTERED = '1', ... }`).
-- **Chống Lạm Dụng `?` và `| null` Vô Tội Vạ**: Phải chắc chắn về data schema. Tuyệt đối không gắn `?` hay `| null` bừa bãi khi trường đó đã được đảm bảo chắc chắn (như mappers luôn khởi tạo array rỗng `[]` thì type là `T[]`). Chỉ dùng `?` khi thực sự optional và `| null` khi backend cam kết trả `null` có chủ đích. Tuyệt đối không viết `?: string | null`.
+- **No Hardcode & Magic Values**: NEVER hardcode magic strings, numbers, or shortcuts. All shortcuts, configs, and ratings MUST be defined via explicit Enums/Constants (e.g. `StudyShortcutKey { FLIP_SPACE = 'Space', MASTERED = '1', ... }`).
+- **No Careless `?` and `| null` Abuse**: Ensure exact data schemas. Never add `?` or `| null` carelessly when a field is guaranteed (e.g. if mappers always return empty arrays `[]`, the type is `T[]`). Only use `?` when genuinely optional and `| null` when backend intentionally sends `null`. Never write `?: string | null`.
+
+---
 
 # Strict Hook Length Limit & Loose Coupling Rule (MANDATORY)
-- **Giới hạn độ dài Custom Hook**: Một React custom hook BẮT BUỘC KHÔNG ĐƯỢC dài quá 300 dòng code.
-- **Chống Phụ Thuộc Chéo Giữa Các Hook (Anti-Coupled Hooks / Anti-Ping-Pong State)**:
-  - Khi phân rã logic để tuân thủ giới hạn dòng code, TUYỆT ĐỐI KHÔNG chia cắt cùng một luồng state nghiệp vụ ra thành nhiều custom hooks phụ thuộc chéo (hook A phụ thuộc hook B, hook B gọi callback/state của hook A, chuyền qua chuyền lại các callbacks như `onAction`, `resetAction`, ping-pong state).
-  - BẮT BUỘC tuân thủ:
-    1. **Pure Utilities First**: Ưu tiên tách logic tính toán, chuyển đổi dữ liệu (data transformations, algorithms, queue calculation, rating mapping) thành các Pure Functions trong thư mục `utils/`. Hàm thuần túy không có React lifecycle/state, cực kỳ dễ test và không gây coupling giữa các hooks.
-    2. **Single Source of Truth**: State cốt lõi của một quy trình (session queue, feedback, card hiện tại) phải được quản trị tập trung tại một nơi duy nhất.
-    3. **Độc lập, Unidirectional**: Các sub-hooks nếu tạo (như audio player, keyboard shortcuts listener) phải hoàn toàn độc lập, chỉ nhận input cần thiết (unidirectional flow), không can thiệp hay phụ thuộc chéo vào state của hook khác.
+- **Custom Hook Length Limit**: A React custom hook MUST NOT exceed **300 lines of code**.
+- **No Interdependent Hook Coupling (Anti-Coupled Hooks / Anti-Ping-Pong State)**:
+  - When decomposing logic to satisfy line limits, NEVER split a single business state flow into mutually dependent custom hooks.
+  - MUST adhere to:
+    1. **Pure Utilities First**: Extract calculations, transformations, algorithms, queue logic, and rating mappings into Pure Functions in `utils/`.
+    2. **Single Source of Truth**: Core state of a flow must be centrally managed in one place.
+    3. **Independent, Unidirectional Sub-hooks**: Sub-hooks (like audio players or keyboard listeners) must be completely independent and receive only required inputs in a unidirectional flow.
 
+---
+
+# Strict Shared DTO Inheritance & SOLID Generic Code Reuse Rule (MANDATORY)
+- **Inherit Shared DTOs**: All request/query endpoints with pagination (`page`, `limit`) MUST inherit `PaginationDto` (or `BaseFilterDto` if supporting `search`, `sortBy`, `sortOrder`) from `shared/presentation/dtos/pagination.dto.ts`. NEVER declare loose query params `@Query('page')` or duplicate pagination fields in custom DTOs.
+- **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
+- **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.

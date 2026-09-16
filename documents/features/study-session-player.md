@@ -17,10 +17,12 @@ Build the multi-mode interactive study session player (Learn New Words, Flashcar
 
 ### Functional Requirements
 - [x] Multi-exercise queue generation (`FLASHCARD`, `CHOICE_TERM`, `CHOICE_MEANING`, `TYPING`).
-- [x] Distractor Cards Fallback Hierarchy for multiple-choice questions (4 distinct options guaranteed):
-  1. Priority 1: Same Topic cards.
-  2. Priority 2: Same Folder cards.
-  3. Priority 3: System-wide Vocabulary DB.
+- [x] Distractor Cards Strict Hierarchy for multiple-choice questions (4 distinct options guaranteed from REAL user/system vocabulary, ZERO MOCK/HARDCODED FALLBACK CARDS):
+  1. Priority 1 (Topic/Batch): Pick distractors from the current topic or active batch pool.
+  2. Priority 2 (Folder): If pool < 4 cards, pick distractors from the containing Folder.
+  3. Priority 3 (System DB): If folder < 4 cards, pick distractors from system-wide Vocabulary DB.
+  - **STRICT MANDATE**: Absolutely NO hardcoded fallback arrays (e.g. `FALLBACK_DISTRACTOR_CARDS`). All distractor options must be real `VocabularyWord` entries. In backend, this distractor selection query is executed via CQRS / Query Service.
+
 - [x] Audio playback for US and UK accents with auto-play settings.
 - [x] Keyboard shortcuts (`Space` to flip, `1` for Mastered, `2` for Known, `3` for Review, `4` for Wrong).
 - [x] Feedback drawer integration using `@lumen/uikit/portal` (`usePortalWithoutBackdrop`).
