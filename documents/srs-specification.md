@@ -1,6 +1,6 @@
 # TÀI LIỆU ĐẶC TẢ HỆ THỐNG GHI NHỚ TỪ VỰNG (SPACED REPETITION SYSTEM - SRS)
 
-> File này là nguồn sự thật (source of truth) cho cơ chế SRS trong dự án Lumen.
+> File này là nguồn sự thật (source of truth) cho cơ chế SRS và thuật toán tạo câu hỏi ôn tập trong dự án Lumen.
 > Mọi thay đổi logic SRS phải cập nhật đồng bộ file này.
 
 ---
@@ -104,7 +104,26 @@ nextReviewAt = now + 4 giờ
 
 ---
 
-## 5. STATE MACHINE
+## 5. THUẬT TOÁN TẠO CÂU HỎI & HÀNG ĐÃI BẪY (DISTRACTORS)
+
+Đối với các dạng bài trắc nghiệm (`CHOICE_TERM`, `CHOICE_MEANING`), hệ thống **BẮT BUỘC** phải tạo đủ **4 lựa chọn** thực tế từ từ vựng trong cơ sở dữ liệu theo thứ tự ưu tiên (Distractor Fallback Hierarchy):
+
+1. **Ưu tiên 1 (Cùng Topic)**: Lấy các từ ngẫu nhiên trong cùng Chủ đề (Topic).
+2. **Ưu tiên 2 (Cùng Folder)**: Nếu số lượng từ trong Topic < 3, lấy bổ sung từ khác trong cùng Thư mục (Folder).
+3. **Ưu tiên 3 (Kho từ vựng hệ thống)**: Nếu vẫn thiếu, lấy bổ sung từ bất kỳ trong DB từ vựng chung của ứng dụng.
+
+> **Quy tắc**: Tuyệt đối không bịa đáp án ngẫu nhiên hoặc hiển thị ít hơn 4 phương án lựa chọn.
+
+---
+
+## 6. THỐNG KÊ THƯỜNG TRỰC & HÀM OVERVIEW (OVERVIEW API)
+
+- Endpoint `GET /vocabulary/overview` trả về trực tiếp thông số `dueCount` (số lượng thẻ đến hạn ôn tập) được tính toán qua Query có Index trên DB (`userId`, `nextReviewAt`).
+- Frontend sử dụng trực tiếp chỉ số `dueCount` từ API Overview để hiển thị Badge và Card KPI, tránh việc gọi endpoint `/due` toàn bộ danh sách chỉ để đếm độ dài.
+
+---
+
+## 7. STATE MACHINE
 
 ```
 [Level 0: Chưa học]

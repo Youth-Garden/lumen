@@ -1,211 +1,88 @@
-# Design System Master File
+# Lumen Design System Specification
 
-> **LOGIC:** When building a specific page, first check `design-system/pages/[page-name].md`.
-> If that file exists, its rules **override** this Master file.
-> If not, strictly follow the rules below.
+> **Source of Truth**: This document defines the visual design system, token usage, component conventions, and UI principles for the **Lumen** platform (`@lumen/uikit` and Next.js Frontend).
 
 ---
 
-**Project:** Lumen
-**Generated:** 2026-07-08 15:03:25
-**Category:** B2B Service
-**Design Dials:** Variance 3/10 (Centered / Minimal)
+## 1. Visual Design Principles & Aesthetics
+
+1. **Rich & Premium Aesthetic**: Modern, clean, and airy design with curated HSL color tokens, dark mode support, and smooth transitions (150ms–300ms).
+2. **Anti-Border & Anti-Card-Clutter (Box-in-Box Prevention)**:
+   - **Minimize Hard Borders**: Avoid heavy, rigid borders (`border`, `border-border/80`). Use flat surfaces, subtle background contrasts, and clean margins.
+   - **No Box-in-Box Nesting**: Never wrap individual list items, paragraph rows, or options inside nested background boxes (`bg-muted/20`, `bg-muted/30`, `rounded-2xl border...`). Use the page/dialog surface directly with natural padding and typography hierarchy.
+3. **Button Variant System (Strict No Manual Re-styling)**:
+   - **Zero Custom Button Overrides**: Never manually override `border`, `bg`, `rounded`, `shadow`, or padding classes on the `<Button>` component.
+   - **Variant & Size Props Only**: Access all button styles exclusively via props:
+     - `variant`: `'default'` | `'secondary'` | `'outline'` | `'ghost'` | `'subtle'` | `'destructive'`
+     - `size`: `'default'` | `'sm'` | `'lg'` | `'icon'` | `'icon-sm'`
+4. **Minimalist Headers**: Never append redundant count badges or pill numbers (e.g. `(0)`, `[count]`, or `<span ...>{length}</span>`) next to section titles or category headers unless explicitly requested.
 
 ---
 
-## Global Rules
+## 2. Color System & Design Tokens
 
-### Color Palette
+Lumen uses TailwindCSS combined with CSS variable design tokens supporting light and dark themes.
 
-| Role        | Hex       | CSS Variable          |
-| ----------- | --------- | --------------------- |
-| Primary     | `#1E3A5F` | `--color-primary`     |
-| On Primary  | `#FFFFFF` | `--color-on-primary`  |
-| Secondary   | `#2563EB` | `--color-secondary`   |
-| Accent/CTA  | `#059669` | `--color-accent`      |
-| Background  | `#F8FAFC` | `--color-background`  |
-| Foreground  | `#0F172A` | `--color-foreground`  |
-| Muted       | `#F1F3F5` | `--color-muted`       |
-| Border      | `#E4E7EB` | `--color-border`      |
-| Destructive | `#DC2626` | `--color-destructive` |
-| Ring        | `#1E3A5F` | `--color-ring`        |
+| Role | Variable | Description |
+| :--- | :--- | :--- |
+| **Background** | `--background` | Page and screen background surface |
+| **Foreground** | `--foreground` | Main text color |
+| **Card / Surface** | `--card` | Surface background for main bento cards and dialogs |
+| **Primary** | `--primary` | Main action color, brand accent |
+| **Primary Foreground** | `--primary-foreground` | Text color on top of primary background |
+| **Secondary** | `--secondary` | Subdued action background |
+| **Muted** | `--muted` / `--muted-foreground` | De-emphasized backgrounds and secondary text |
+| **Border** | `--border` | Subtle divider color |
+| **Destructive** | `--destructive` | Error states and destructive actions |
+| **Ring** | `--ring` | Focus ring color |
 
-**Color Notes:** Navy professional + paid green
+---
 
-### Typography
+## 3. Component Conventions (`@lumen/uikit`)
 
-- **Heading Font:** Inter
-- **Body Font:** Inter
-- **Mood:** minimal, clean, swiss, functional, neutral, professional
-- **Google Fonts:** [Inter + Inter](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap)
+### 3.1. Base UI Triggers (`render` Prop Mandatory)
 
-**CSS Import:**
+All trigger components built on `@base-ui` (`TooltipTrigger`, `PopoverTrigger`, `MenuTrigger`, etc.) **MUST** use the `render` prop instead of `asChild`.
 
-```css
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+```tsx
+// ✅ Correct
+<TooltipTrigger render={<button className="..." />} />
+
+// ❌ Incorrect (Do NOT use asChild on Base UI triggers)
+<TooltipTrigger asChild><button ... /></TooltipTrigger>
 ```
 
-### Spacing Variables
+### 3.2. Portal & Z-Index Layering Standard
 
-| Token         | Value             | Usage                     |
-| ------------- | ----------------- | ------------------------- |
-| `--space-xs`  | `4px` / `0.25rem` | Tight gaps                |
-| `--space-sm`  | `8px` / `0.5rem`  | Icon gaps, inline spacing |
-| `--space-md`  | `16px` / `1rem`   | Standard padding          |
-| `--space-lg`  | `24px` / `1.5rem` | Section padding           |
-| `--space-xl`  | `32px` / `2rem`   | Large gaps                |
-| `--space-2xl` | `48px` / `3rem`   | Section margins           |
-| `--space-3xl` | `64px` / `4rem`   | Hero padding              |
+Portal overlays and modals managed by `@lumen/uikit/portal` use minimal, predictable, single-digit/double-digit z-index values:
 
-### Shadow Depths
+| Layer | Z-Index Value | Description |
+| :--- | :---: | :--- |
+| **Background Portals** | `98` | Inactive, lower-stacked open portal dialogs |
+| **Shared Backdrop** | `99` | Single overlay backdrop behind active portal |
+| **Active Top Portal** | `100` | Currently active top-most portal overlay |
 
-| Level         | Value                          | Usage                       |
-| ------------- | ------------------------------ | --------------------------- |
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)`   | Subtle lift                 |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)`    | Cards, buttons              |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)`  | Modals, dropdowns           |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+*Note: Avoid bloated z-index numbers like `1000`, `9999`, or complex offset formulas.*
+
+### 3.3. Iconography
+
+- All icons are rendered via the centralized `<Icons name="..." />` component from `@lumen/uikit/icons`.
+- **No Emojis as UI Icons**: Emojis are forbidden for functional UI icons. Always use SVG icon components.
 
 ---
 
-## Component Specs
+## 4. Copywriting & Content Neutrality
 
-### Buttons
-
-```css
-/* Primary Button */
-.btn-primary {
-  background: #059669;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #1e3a5f;
-  border: 2px solid #1e3a5f;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
-
-### Cards
-
-```css
-.card {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
-
-### Inputs
-
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
-
-.input:focus {
-  border-color: #1e3a5f;
-  outline: none;
-  box-shadow: 0 0 0 3px #1e3a5f20;
-}
-```
-
-### Modals
-
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
+1. **Generic Platform Copy**: Feature names, folder titles, vocabulary badges, and placeholders must remain neutral and versatile (e.g. use *"System Folders"*, not *"TOEIC System Folders"*).
+2. **Dedicated Modules Only**: Specialized exam terminology (TOEIC, IELTS, etc.) is reserved strictly for dedicated exam modules (e.g. mock test simulators).
 
 ---
 
-## Style Guidelines
+## 5. UI Checklist & Quality Assurance
 
-**Style:** Exaggerated Minimalism
-
-**Keywords:** Bold minimalism, oversized typography, high contrast, negative space, loud minimal, statement design
-
-**Best For:** Fashion, architecture, portfolios, agency landing pages, luxury brands, editorial
-
-**Key Effects:** font-size: clamp(3rem 10vw 12rem), font-weight: 900, letter-spacing: -0.05em, massive whitespace
-
-### Page Pattern
-
-**Pattern Name:** Minimal Single Column
-
-- **Conversion Strategy:** Single CTA focus. Large typography. Lots of whitespace. No nav clutter. Mobile-first.
-- **CTA Placement:** Center, large CTA button
-- **Section Order:** 1. Hero headline, 2. Short description, 3. Benefit bullets (3 max), 4. CTA, 5. Footer
-
----
-
-## Anti-Patterns (Do NOT Use)
-
-- ❌ Playful design
-- ❌ Hidden credentials
-- ❌ AI purple/pink gradients
-
-### Additional Forbidden Patterns
-
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
-
----
-
-## Pre-Delivery Checklist
-
-Before delivering any UI code, verify:
-
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
-- [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
-- [ ] Light mode: text contrast 4.5:1 minimum
-- [ ] Focus states visible for keyboard navigation
-- [ ] `prefers-reduced-motion` respected
-- [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
-- [ ] No horizontal scroll on mobile
+- [ ] All `<Button>` components use `variant` and `size` props without manual style overrides.
+- [ ] No "box-in-box" card clutter or unnecessary inner borders.
+- [ ] Base UI triggers use `render={<Element />}`.
+- [ ] Overlays strictly follow `98` / `99` / `100` z-index scale.
+- [ ] No hardcoded text strings (all text localized via `next-intl`).
+- [ ] Interactive elements have `cursor-pointer` and smooth transitions.
