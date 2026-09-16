@@ -1,27 +1,27 @@
-# TÀI LIỆU ĐẶC TẢ HỆ THỐNG GHI NHỚ TỪ VỰNG (SPACED REPETITION SYSTEM - SRS)
+# Spaced Repetition System (SRS) Specification
 
-> File này là nguồn sự thật (source of truth) cho cơ chế SRS và thuật toán tạo câu hỏi ôn tập trong dự án Lumen.
-> Mọi thay đổi logic SRS phải cập nhật đồng bộ file này.
+> **Source of Truth**: This document defines the core mechanics, data structures, and algorithms for the Spaced Repetition System (SRS) and distractor generation logic in the Lumen platform.
+> Any changes to SRS logic must be synchronized with this document.
 
 ---
 
-## 1. MÔ HÌNH DỮ LIỆU (DATA SCHEMA)
+## 1. Data Schema
 
 ```typescript
 interface UserWordProgress {
   userId: string;
-  wordId: string;          // hoặc flashcardId tùy mapping
+  wordId: string; // or flashcardId depending on mapping
 
-  // Trạng thái hiển thị
-  masteryScore: number;    // Điểm thành thạo thực tế: 0.0 -> 100.0 (%)
-  level: number;           // 0: Chưa học | 1..4: Đang học | 5: Thông thạo
-  isWilted: boolean;       // true: Quá hạn ôn tập (Cần tưới nước / Hoa héo)
+  // Display status
+  masteryScore: number; // Actual mastery percentage: 0.0 -> 100.0 (%)
+  level: number; // 0: Unlearned | 1..4: Learning | 5: Mastered
+  isWilted: boolean; // true: Due for review (Needs watering / Plant wilted)
 
-  // Chỉ số phục vụ tính toán nấc & SRS
-  learningStep: number;    // Bộ đếm cho Level 0→1: Tích lũy 0 -> 6 lần đúng
-  intervalDays: number;    // Khoảng cách ngày cho lần ôn tập kế tiếp
+  // Interval & SRS calculation metrics
+  learningStep: number; // Counter for Level 0→1 transition: accumulated 0 -> 6 correct attempts
+  intervalDays: number; // Days interval until the next scheduled review
 
-  // Mốc thời gian
+  // Timestamps
   lastReviewedAt: Date | null;
   nextReviewAt: Date | null;
 }
@@ -29,131 +29,130 @@ interface UserWordProgress {
 
 ---
 
-## 2. PHÂN CẤP NẤC NHỚ & BIỂU TƯỢNG VÒNG ĐỜI CÂY TRỒNG
+## 2. Retention Stage Hierarchy & Plant Growth Metaphor
 
-| level | Tên           | masteryScore  | Icon               | Nấc sáng | intervalDays    |
-|-------|---------------|---------------|--------------------|----------|-----------------|
-| 0     | Chưa học      | 0%            | Hạt mầm chưa gieo  | 0 / 5    | N/A             |
-| 1     | Mới học       | 1% – 20%      | Hạt nảy mầm        | 1 / 5    | 4 giờ (0.16d)   |
-| 2     | Nhớ tạm       | 21% – 40%     | Chồi non vươn lên  | 2 / 5    | 1 ngày          |
-| 3     | Nhớ lâu       | 41% – 60%     | Cây 2 lá mầm       | 3 / 5    | 3 ngày          |
-| 4     | Thuộc lòng    | 61% – 80%     | Cây kết nụ hoa     | 4 / 5    | 7 ngày          |
-| 5     | Thông thạo    | 81% – 100%    | Hoa hướng dương nở | 5 / 5    | 30d → nhân đôi  |
+| Level | Stage Name | Mastery Score | Icon Metaphor | Lit Bars | Interval Days |
+| :---: | :--- | :---: | :--- | :---: | :--- |
+| **0** | Unlearned | 0% | Unplanted Seed | 0 / 5 | N/A |
+| **1** | Beginner | 1% – 20% | Sprouted Seed | 1 / 5 | 4 hours (0.16d) |
+| **2** | Developing | 21% – 40% | Growing Sapling | 2 / 5 | 1 day |
+| **3** | Retaining | 41% – 60% | Two-leaf Plant | 3 / 5 | 3 days |
+| **4** | Memorized | 61% – 80% | Budding Flower | 4 / 5 | 7 days |
+| **5** | Mastered | 81% – 100% | Blooming Sunflower | 5 / 5 | 30d → doubled on success |
 
 ---
 
-## 3. LOGIC HỌC TỪ MỚI & THĂNG CẤP (TIẾN TRÌNH THUẬN)
+## 3. New Word Learning & Promotion Logic (Forward Progression)
 
-### 3.1. Giai đoạn Gieo mầm (Level 0 → Level 1)
+### 3.1. Seed Planting Phase (Level 0 → Level 1)
 
-- Phải chọn đúng lũy kế **6 lần** (cross-session, lưu bền vững DB)
-- Mỗi lần đúng:
-  ```
+- Requires a cumulative total of **6 correct answers** (persisted across sessions in database).
+- On each correct answer:
+  ```text
   learningStep += 1
-  masteryScore = min(20, learningStep × (20/6))
+  masteryScore = min(20, learningStep * (20 / 6))
   ```
-- Khi learningStep >= 6:
-  ```
+- When `learningStep >= 6`:
+  ```text
   level = 1
   masteryScore = 20%
-  nextReviewAt = now + 4 giờ
+  nextReviewAt = now + 4 hours
   ```
 
-### 3.2. Ôn tập định kỳ SRS (Level 1 → Level 5)
+### 3.2. Periodic SRS Review Phase (Level 1 → Level 5)
 
-| Chuyển từ → đến | Số lần đúng cần | masteryScore mới | intervalDays |
-|-----------------|-----------------|------------------|--------------|
-| Level 1 → 2     | 2 lần ôn hợp lệ | 40%              | 1 ngày       |
-| Level 2 → 3     | 2 lần ôn hợp lệ | 60%              | 3 ngày       |
-| Level 3 → 4     | 1 lần ôn hợp lệ | 80%              | 7 ngày       |
-| Level 4 → 5     | 1 lần ôn hợp lệ | 100%             | 30 ngày      |
+| Transition | Required Correct Reviews | New Mastery Score | Next Interval Days |
+| :---: | :---: | :---: | :---: |
+| **Level 1 → 2** | 2 valid reviews | 40% | 1 day |
+| **Level 2 → 3** | 2 valid reviews | 60% | 3 days |
+| **Level 3 → 4** | 1 valid review | 80% | 7 days |
+| **Level 4 → 5** | 1 valid review | 100% | 30 days |
 
-> "Ôn hợp lệ" = trả lời đúng tại thời điểm current_time >= nextReviewAt
+> **Valid Review**: Answering correctly when `current_time >= nextReviewAt`.
 
-### 3.3. Phím tắt đánh giá nhanh
+### 3.3. Fast-Track Evaluation Shortcuts
 
-| Hành động     | Kết quả                                          |
-|---------------|--------------------------------------------------|
-| "Nhớ tạm"     | level=2, masteryScore=40%, nextReviewAt=now+1d   |
-| "Đã biết"     | level=5, masteryScore=100%, nextReviewAt=now+30d |
+| Action | Resulting State |
+| :--- | :--- |
+| **"Temporary Memory"** | `level = 2`, `masteryScore = 40%`, `nextReviewAt = now + 1 day` |
+| **"Already Known"** | `level = 5`, `masteryScore = 100%`, `nextReviewAt = now + 30 days` |
 
 ---
 
-## 4. CƠ CHẾ HOA HÉO & TRỪ ĐIỂM KHI TRẢ LỜI SAI
+## 4. Wilted Mechanics & Incorrect Answer Penalties
 
-### 4.1. Hoa héo (Wilted)
+### 4.1. Wilted Status (`isWilted`)
 
-Khi: `current_time >= nextReviewAt` → `isWilted = true`
+- Trigger: `current_time >= nextReviewAt` → `isWilted = true`.
+- No automatic score deduction occurs until the user actually enters a review session.
 
-Không tự động trừ điểm khi chưa vào làm bài.
+### 4.2. Review Session Outcomes ("Watering the Plant")
 
-### 4.2. Vào tưới nước (Review Session)
-
-**Đúng:**
+**Correct Answer:**
 - `isWilted = false`
-- Tăng level theo bảng 3.2
-- Level 5 đúng tiếp: `intervalDays = min(180, intervalDays × 2)`
+- Advance level according to table in Section 3.2.
+- For Level 5 words answered correctly: `intervalDays = min(180, intervalDays * 2)`.
 
-**Sai:**
-```
+**Incorrect Answer:**
+```text
 masteryScore = max(0, masteryScore - 20%)
 level = floor(masteryScore / 20)
-intervalDays = 0.16  (4 giờ)
-nextReviewAt = now + 4 giờ
+intervalDays = 0.16 (4 hours)
+nextReviewAt = now + 4 hours
 ```
 
 ---
 
-## 5. THUẬT TOÁN TẠO CÂU HỎI & HÀNG ĐÃI BẪY (DISTRACTORS)
+## 5. Question Generation & Distractor Fallback Hierarchy
 
-Đối với các dạng bài trắc nghiệm (`CHOICE_TERM`, `CHOICE_MEANING`), hệ thống **BẮT BUỘC** phải tạo đủ **4 lựa chọn** thực tế từ từ vựng trong cơ sở dữ liệu theo thứ tự ưu tiên (Distractor Fallback Hierarchy):
+For multiple-choice exercises (`CHOICE_TERM`, `CHOICE_MEANING`), the engine **MUST** generate exactly **4 distinct choices** sourced from genuine database vocabulary according to the strict fallback hierarchy:
 
-1. **Ưu tiên 1 (Cùng Topic)**: Lấy các từ ngẫu nhiên trong cùng Chủ đề (Topic).
-2. **Ưu tiên 2 (Cùng Folder)**: Nếu số lượng từ trong Topic < 3, lấy bổ sung từ khác trong cùng Thư mục (Folder).
-3. **Ưu tiên 3 (Kho từ vựng hệ thống)**: Nếu vẫn thiếu, lấy bổ sung từ bất kỳ trong DB từ vựng chung của ứng dụng.
+1. **Priority 1 (Same Topic)**: Select random distinct words from the current Topic pool.
+2. **Priority 2 (Same Folder)**: If the topic has fewer than 3 distractors, select additional words from the parent Folder.
+3. **Priority 3 (System Vocabulary DB)**: If the folder has fewer than 3 distractors, fill remaining slots from the system-wide Vocabulary bank.
 
-> **Quy tắc**: Tuyệt đối không bịa đáp án ngẫu nhiên hoặc hiển thị ít hơn 4 phương án lựa chọn.
-
----
-
-## 6. THỐNG KÊ THƯỜNG TRỰC & HÀM OVERVIEW (OVERVIEW API)
-
-- Endpoint `GET /vocabulary/overview` trả về trực tiếp thông số `dueCount` (số lượng thẻ đến hạn ôn tập) được tính toán qua Query có Index trên DB (`userId`, `nextReviewAt`).
-- Frontend sử dụng trực tiếp chỉ số `dueCount` từ API Overview để hiển thị Badge và Card KPI, tránh việc gọi endpoint `/due` toàn bộ danh sách chỉ để đếm độ dài.
+> **Rule**: Never fabricate mock or random placeholder strings. Exactly 4 real options are required.
 
 ---
 
-## 7. STATE MACHINE
+## 6. Real-time Metrics & Overview API
 
-```
-[Level 0: Chưa học]
+- Endpoint `GET /vocabulary/overview` returns the `dueCount` metric computed directly via indexed database query (`(userId, nextReviewAt)`).
+- Frontend UI consumes `dueCount` from the Overview API for badges and KPI widgets, avoiding calling `/due` full list queries for simple counting.
+
+---
+
+## 7. State Machine Diagram
+
+```text
+[Level 0: Unlearned]
        │
-       ▼ (Đúng đủ 6 lần tích lũy)
-[Level 1: Mới học (1 nấc, 20%)] ── Sau 4 giờ ──► [Hoa héo]
+       ▼ (6 Cumulative Correct Answers)
+[Level 1: Beginner (1 bar, 20%)] ── After 4 hrs ──► [Wilted]
        │                                              │
-       ├──────── Đúng 2 lần ôn tập ◄─────────────────┘
+       ├──────── 2 Valid Correct Reviews ◄────────────┘
        ▼
-[Level 2: Nhớ tạm (2 nấc, 40%)] ── Sau 1 ngày ──► [Hoa héo]
-       │                                              │
-       ├──────── Đúng 2 lần ôn tập ◄─────────────────┤
-       │                                         ▼ (Sai)
-       │                                    Rớt về Level 1
+[Level 2: Developing (2 bars, 40%)] ── After 1 day ──► [Wilted]
+       │                                                 │
+       ├──────── 2 Valid Correct Reviews ◄───────────────┤
+       │                                            ▼ (Wrong)
+       │                                       Demote to Level 1
        ▼
-[Level 3: Nhớ lâu (3 nấc, 60%)] ── Sau 3 ngày ──► [Hoa héo]
-       │                                              │
-       ├──────── Đúng 1 lần ôn tập ◄─────────────────┤
-       │                                         ▼ (Sai)
-       │                                    Rớt về Level 2
+[Level 3: Retaining (3 bars, 60%)] ── After 3 days ──► [Wilted]
+       │                                                 │
+       ├──────── 1 Valid Correct Review ◄────────────────┤
+       │                                            ▼ (Wrong)
+       │                                       Demote to Level 2
        ▼
-[Level 4: Thuộc lòng (4 nấc, 80%)] ─ Sau 7 ngày ─► [Hoa héo]
-       │                                              │
-       ├──────── Đúng 1 lần ôn tập ◄─────────────────┤
-       │                                         ▼ (Sai)
-       │                                    Rớt về Level 3
+[Level 4: Memorized (4 bars, 80%)] ── After 7 days ──► [Wilted]
+       │                                                 │
+       ├──────── 1 Valid Correct Review ◄────────────────┤
+       │                                            ▼ (Wrong)
+       │                                       Demote to Level 3
        ▼
-[Level 5: Hoa hướng dương (5 nấc, 100%)] ─ 30d ─► [Hoa héo]
-       │                                              │
-       ├──────── Đúng: interval × 2 (max 180d) ◄──────┤
-       │                                         ▼ (Sai)
-       └──────────────────────────────── Rớt về Level 4
+[Level 5: Mastered Sunflower (5 bars, 100%)] ─ 30d ──► [Wilted]
+       │                                                 │
+       ├──────── Correct: interval * 2 (max 180d) ◄──────┤
+       │                                            ▼ (Wrong)
+       └──────────────────────────────────────── Demote to Level 4
 ```
