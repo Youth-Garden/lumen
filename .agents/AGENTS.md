@@ -121,3 +121,12 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
 - **Inherit Shared DTOs**: All request/query endpoints with pagination (`page`, `limit`) MUST inherit `PaginationDto` (or `BaseFilterDto` if supporting `search`, `sortBy`, `sortOrder`) from `shared/presentation/dtos/pagination.dto.ts`. NEVER declare loose query params `@Query('page')` or duplicate pagination fields in custom DTOs.
 - **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
 - **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.
+
+---
+
+# Strict React Hook Dependencies & Stable References Rule (MANDATORY)
+- **No Redundant Stable References in Dependency Arrays**:
+  - Stable setters (`setState`, `setIsFlipped`, `setOpen`, `useToggle` dispatchers), store actions, and stable helper functions that never change MUST NOT be added to `useEffect`, `useCallback`, or `useMemo` dependency arrays.
+  - Adding stable setters/functions unnecessarily bloats dependency lists without providing any functional benefit.
+  - Dependency arrays must strictly contain only actual dynamic state, props, or variables that need to trigger re-execution when their values change.
+  - `react-hooks/exhaustive-deps` is explicitly disabled in ESLint config.

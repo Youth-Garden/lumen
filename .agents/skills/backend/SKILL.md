@@ -282,8 +282,9 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
 - **No Hardcoded Specialized Content**: Keep platform features generic and neutral. Specialized domain terms (TOEIC, IELTS) belong ONLY inside dedicated modules.
 - **No Browser Automation for Testing**: NEVER open a browser (`browser_subagent`, Puppeteer).
 
-## 15. Shared DTO Inheritance, SOLID & Generic Code Reuse (MANDATORY)
+## 15. Shared DTO & CQRS Query Inheritance, SOLID & Generic Code Reuse (MANDATORY)
 
 - **Shared DTO Inheritance**: All request/query endpoints with pagination (`page`, `limit`) MUST inherit `PaginationDto` (or `BaseFilterDto` if supporting `search`, `sortBy`, `sortOrder`) from `shared/presentation/dtos/pagination.dto.ts`. NEVER declare loose query params `@Query('page')` or duplicate pagination fields in custom DTOs.
-- **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
+- **Shared CQRS Query Inheritance**: All CQRS Query classes handling pagination criteria MUST inherit `PaginatedQuery` (or `BaseFilterQuery` if handling search/sort) from `shared/application/cqrs/paginated.query.ts` or `shared/application/cqrs/base-filter.query.ts`. Never redeclare `page` and `limit` manually without inheriting from base query classes.
+- **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, `PaginatedQuery`, `BaseFilterQuery`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
 - **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.

@@ -197,3 +197,13 @@ This skill defines mandatory rules, architectural standards, and design system c
 - **No Redundant Count Badges in Headers**: Never append count numbers or pill badges next to section titles/headings unless explicitly requested.
 - **No Browser Automation for Testing**: NEVER open a browser (`browser_subagent`, Puppeteer).
 - **Content & Copywriting Neutrality (Strict)**: Platform features must remain completely generic, neutral, and versatile. Specialized domain terms may ONLY be used within modules that are strictly dedicated to that specific purpose.
+
+---
+
+## 17. React Hook Dependencies & Stable References Rule (MANDATORY)
+
+- **No Redundant Stable References in Dependency Arrays**:
+  - Stable setters (`setState`, `setIsFlipped`, `setOpen`, `useToggle` dispatchers), store actions, and stable helper functions that never change MUST NOT be added to `useEffect`, `useCallback`, or `useMemo` dependency arrays.
+  - Adding stable setters/functions unnecessarily bloats dependency lists without providing any functional benefit.
+  - Dependency arrays must strictly contain only actual dynamic state, props, or variables that need to trigger re-execution when their values change.
+  - `react-hooks/exhaustive-deps` is disabled in ESLint to avoid forcing meaningless stable dependencies.
