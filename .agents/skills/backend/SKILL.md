@@ -286,5 +286,9 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
 
 - **Shared DTO Inheritance**: All request/query endpoints with pagination (`page`, `limit`) MUST inherit `PaginationDto` (or `BaseFilterDto` if supporting `search`, `sortBy`, `sortOrder`) from `shared/presentation/dtos/pagination.dto.ts`. NEVER declare loose query params `@Query('page')` or duplicate pagination fields in custom DTOs.
 - **Shared CQRS Query Inheritance**: All CQRS Query classes handling pagination criteria MUST inherit `PaginatedQuery` (or `BaseFilterQuery` if handling search/sort) from `shared/application/cqrs/paginated.query.ts` or `shared/application/cqrs/base-filter.query.ts`. Never redeclare `page` and `limit` manually without inheriting from base query classes.
+- **Single Source of Truth for Default Values (No Defaults in Repositories/Services)**:
+  - Base DTOs (`PaginationDto`) and Base Queries (`PaginatedQuery`) are the ONLY single source of truth for request defaults (`page = 1, limit = 20`).
+  - Subclass DTOs and Queries MUST NOT override base default values (e.g. no `limit = 50` or `limit = 10` in subclasses). Frontend is responsible for explicitly passing desired limits (`?limit=50`).
+  - Repositories and Domain Services MUST NOT declare default value initializers (`page = 1, limit = 20`) or fallback operators (`|| 1, || 20`) in method signatures. They receive exact typed arguments passed from handlers.
 - **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, `PaginatedQuery`, `BaseFilterQuery`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
 - **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.
