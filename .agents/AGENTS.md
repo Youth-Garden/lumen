@@ -75,6 +75,15 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
 
 ---
 
+# Strict Dialog & Modal Styling Rule (MANDATORY)
+- **No Manual Dialog / Modal Re-styling**:
+  - NEVER arbitrarily re-style or manually override background overlays (`bg-background/95`, `backdrop-blur-*`), border styles (`border-border/60`, `border-border/50`), padding, or rounded corners on `<DialogContent>` or `<DialogHeader>`.
+  - The standard `Dialog` component in UIKit (`@lumen/uikit/components`) already defines the standard surface, backdrop, elevation, and close button.
+  - Dialog styling MUST strictly only define responsive dimension constraints (e.g. `w-[94vw] sm:max-w-5xl md:max-w-6xl h-[86vh] max-h-[900px] flex flex-col overflow-hidden`) without overriding background, border, or padding.
+  - NEVER inject arbitrary divider lines (`border-b`, `border-t`, `divide-*`) into `DialogHeader` or dialog bodies unless explicitly requested by the user.
+
+---
+
 # Strict Directory Structure, Re-export, and Type Placement Rule (MANDATORY)
 - **Separation of Concerns by Directory**:
   - `components/`: MUST contain React UI components (`.tsx`) ONLY. Never place non-component files (constants, animation variants, configs, utils, types) inside `components/`. Create dedicated folders instead (`constants/`, `hooks/`, `types/`, `utils/`).
