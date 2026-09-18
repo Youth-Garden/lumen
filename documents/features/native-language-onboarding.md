@@ -59,12 +59,11 @@ Routes are strictly categorized in `src/shared/constants/route.ts`:
 ### 3.3. Routing & i18n Configuration
 
 - **`src/shared/i18n/routing.ts`**:
-  - `locales`: `['en', 'vi', 'ja']`
+  - `locales`: `['en', 'vi']`
   - `defaultLocale`: `'vi'`
 - **`src/shared/i18n/messages/`**:
   - `vi.json`: Contains `Settings.appearance.nativeLanguage` and `Auth.Welcome`.
   - `en.json`: Contains `Settings.appearance.nativeLanguage` and `Auth.Welcome`.
-  - `ja.json`: Full translation set mirroring `en.json` and `vi.json` in natural Japanese.
 
 ### 3.4. Welcome Screen (`/welcome`)
 
