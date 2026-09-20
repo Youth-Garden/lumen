@@ -88,15 +88,18 @@ apps/web/src/
 
 ---
 
-## 6. Internationalization (i18n)
+## 7. Global State Management (Zustand Stores)
 
-- **No Hardcoded JSX Text**: All text strings must be localized via `useTranslations()` from `next-intl` in `en.json` and `vi.json`.
-- **CamelCase Translation Keys**: All keys in JSON files MUST use `camelCase`.
-- **No i18n Fallbacks**: Avoid unnecessary `fallback` parameters in `t()` calls. Define keys directly in locale JSON files.
+Global client state in `src/store/` is organized into distinct, focused Zustand stores:
+- **`useAuthStore`** (`auth.store.ts`): User authentication, tokens, session expiration.
+- **`useUiStore`** (`ui.store.ts`): Sidebar collapsed state, global Command Palette modal state.
+- **`usePreferencesStore`** (`preferences.store.ts`): User-customized app preferences (sound effects toggle, volume, pronunciation accent, study quota presets, shortcuts display).
+
+See [`documents/preferences-store.md`](./preferences-store.md) for full architectural specifications.
 
 ---
 
-## 7. Verification & Build Standards
+## 8. Verification & Build Standards
 
 - Before declaring any code complete or committing changes:
   - Run `cmd.exe /c "pnpm --filter web build"` to ensure 0 TypeScript compilation or linting errors.

@@ -208,3 +208,12 @@ This skill defines mandatory rules, architectural standards, and design system c
   - Adding stable setters/functions unnecessarily bloats dependency lists without providing any functional benefit.
   - Dependency arrays must strictly contain only actual dynamic state, props, or variables that need to trigger re-execution when their values change.
   - `react-hooks/exhaustive-deps` is disabled in ESLint to avoid forcing meaningless stable dependencies.
+
+---
+
+## 18. Zero Hardcoded Display Copy in Constants & Configs (MANDATORY)
+
+- **Pure Data in Configs**: Constants and configuration objects (such as `LESSON_QUOTA_CONFIGS`) MUST strictly contain raw domain data, numeric thresholds, enums, keys, or technical parameters only.
+- **No Human-Readable Labels or Formatted Strings in Configs**: NEVER embed localized descriptions, labels, or range strings (e.g. `'7-10 questions'`, `'Few'`) in config objects.
+- **Dynamic Localization in UI**: All human-facing text must be rendered dynamically via `useTranslations` in React components, passing numeric thresholds from configs as parameters (e.g. `t('quotaQuestionsRange', { min: config.minCount, max: config.maxCount })`).
+

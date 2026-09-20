@@ -6,7 +6,7 @@
 
 ## 1. Visual Design Principles & Aesthetics
 
-1. **Rich & Premium Aesthetic**: Modern, clean, and airy design with curated HSL color tokens, dark mode support, and smooth transitions (150ms–300ms).
+1. **Rich & Premium Aesthetic**: Modern, clean, and airy design with curated HSL color tokens, dark mode support, and smooth micro-interactions (150ms–300ms).
 2. **Anti-Border & Anti-Card-Clutter (Box-in-Box Prevention)**:
    - **Minimize Hard Borders**: Avoid heavy, rigid borders (`border`, `border-border/80`). Use flat surfaces, subtle background contrasts, and clean margins.
    - **No Box-in-Box Nesting**: Never wrap individual list items, paragraph rows, or options inside nested background boxes (`bg-muted/20`, `bg-muted/30`, `rounded-2xl border...`). Use the page/dialog surface directly with natural padding and typography hierarchy.
@@ -15,7 +15,14 @@
    - **Variant & Size Props Only**: Access all button styles exclusively via props:
      - `variant`: `'default'` | `'secondary'` | `'outline'` | `'ghost'` | `'subtle'` | `'destructive'`
      - `size`: `'default'` | `'sm'` | `'lg'` | `'icon'` | `'icon-sm'`
-4. **Minimalist Headers**: Never append redundant count badges or pill numbers (e.g. `(0)`, `[count]`, or `<span ...>{length}</span>`) next to section titles or category headers unless explicitly requested.
+   - **Secondary Variant Priority**: For secondary / companion actions (such as "Luyện tập" or "Thẻ ghi nhớ" alongside primary "Học từ mới"), always use `variant="secondary"`. Icons inside secondary buttons must inherit text color naturally without manual color overrides.
+4. **Floating Bottom Action Bars**:
+   - Bottom floating bars (e.g. `StudyBottomActionBar`) use standard pill containers:
+     `fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-card/95 backdrop-blur-xl border border-border/80 px-4 py-2.5 rounded-full shadow-2xl animate-in slide-in-from-bottom duration-200 flex items-center gap-2.5 max-w-fit`.
+   - Primary action uses `variant="default"`. Secondary actions use `variant="secondary"`.
+5. **Faithful Skeleton Mirroring**:
+   - Loading skeletons MUST mirror the exact layout structure, grid breakpoints (`grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6`), circular avatar dimensions, text line heights, and floating action bars of the real UI to prevent layout shift (CLS).
+6. **Minimalist Headers**: Never append redundant count badges or pill numbers (e.g. `(0)`, `[count]`, or `<span ...>{length}</span>`) next to section titles or category headers unless explicitly requested.
 
 ---
 
@@ -46,7 +53,7 @@ All trigger components built on `@base-ui` (`TooltipTrigger`, `PopoverTrigger`, 
 
 ```tsx
 // ✅ Correct
-<TooltipTrigger render={<button className="..." />} />
+<TooltipTrigger render={<Button variant="ghost" size="icon-sm" className="..." />} />
 
 // ❌ Incorrect (Do NOT use asChild on Base UI triggers)
 <TooltipTrigger asChild><button ... /></TooltipTrigger>
@@ -58,16 +65,23 @@ Portal overlays and modals managed by `@lumen/uikit/portal` use minimal, predict
 
 | Layer | Z-Index Value | Description |
 | :--- | :---: | :--- |
+| **Bottom Floating Bars** | `40` | Floating action controls fixed at screen bottom |
 | **Background Portals** | `98` | Inactive, lower-stacked open portal dialogs |
 | **Shared Backdrop** | `99` | Single overlay backdrop behind active portal |
 | **Active Top Portal** | `100` | Currently active top-most portal overlay |
 
 *Note: Avoid bloated z-index numbers like `1000`, `9999`, or complex offset formulas.*
 
-### 3.3. Iconography
+### 3.3. Iconography & Visual Assets
 
-- All icons are rendered via the centralized `<Icons name="..." />` component from `@lumen/uikit/icons`.
+- **Iconography**: All functional UI icons are rendered via the centralized `<Icons name="..." />` component from `@lumen/uikit/icons`.
 - **No Emojis as UI Icons**: Emojis are forbidden for functional UI icons. Always use SVG icon components.
+- **Shared Visual Assets**: Shared illustrated assets (e.g. Streak flame, Streak Freeze snowflake) reside in `apps/web/public/images/common/` and are rendered through dedicated shared components (e.g. `<StreakIcon />`).
+- **Mastery Badges**: Word mastery levels are visualized through `<MasteryFlowerBadge />` displaying bloom stages from sprout to full blossom with wilted state indicators.
+
+### 3.4. Framework-Agnostic UI Localization
+
+- Components in `@lumen/uikit` (such as `ThemeSwitcher`) remain framework-agnostic by accepting customizable `labels` props with fallback defaults, allowing consuming Next.js applications to inject `next-intl` localized strings cleanly.
 
 ---
 
@@ -81,8 +95,12 @@ Portal overlays and modals managed by `@lumen/uikit/portal` use minimal, predict
 ## 5. UI Checklist & Quality Assurance
 
 - [ ] All `<Button>` components use `variant` and `size` props without manual style overrides.
+- [ ] Secondary actions use `variant="secondary"` without manual color overrides on inner icons.
+- [ ] Floating action bars adhere to standard pill container tokens and z-index 40.
+- [ ] Skeletons accurately mirror real page layouts and floating action bars.
 - [ ] No "box-in-box" card clutter or unnecessary inner borders.
 - [ ] Base UI triggers use `render={<Element />}`.
 - [ ] Overlays strictly follow `98` / `99` / `100` z-index scale.
-- [ ] No hardcoded text strings (all text localized via `next-intl`).
+- [ ] No hardcoded text strings (all text localized via `next-intl` in `messages/vi.json` and `messages/en.json`).
 - [ ] Interactive elements have `cursor-pointer` and smooth transitions.
+

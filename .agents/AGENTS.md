@@ -111,6 +111,7 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
 
 # Strict Constants, Enums & Type Certainty Rule (MANDATORY)
 - **No Hardcode & Magic Values**: NEVER hardcode magic strings, numbers, or shortcuts. All shortcuts, configs, and ratings MUST be defined via explicit Enums/Constants (e.g. `StudyShortcutKey { FLIP_SPACE = 'Space', MASTERED = '1', ... }`).
+- **Zero Hardcoded Display Copy in Constants & Configs (MANDATORY)**: Constants and configuration objects (e.g. `LESSON_QUOTA_CONFIGS`) MUST strictly contain only raw domain data, numeric thresholds, enums, keys, or technical parameters. NEVER put human-readable labels, subtitles, or localized descriptions (such as `'7-10 questions'`, `'Few'`) in config objects. All display copy MUST reside in i18n message catalogs (`messages/{locale}.json`) and be composed dynamically via `useTranslations` in UI components using parameters (e.g. `t('quotaQuestionsRange', { min: config.minCount, max: config.maxCount })`).
 - **No Careless `?` and `| null` Abuse**: Ensure exact data schemas. Never add `?` or `| null` carelessly when a field is guaranteed (e.g. if mappers always return empty arrays `[]`, the type is `T[]`). Only use `?` when genuinely optional and `| null` when backend intentionally sends `null`. Never write `?: string | null`.
 
 ---
@@ -144,3 +145,11 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
   - Adding stable setters/functions unnecessarily bloats dependency lists without providing any functional benefit.
   - Dependency arrays must strictly contain only actual dynamic state, props, or variables that need to trigger re-execution when their values change.
   - `react-hooks/exhaustive-deps` is explicitly disabled in ESLint config.
+
+---
+
+# Strict Git Commit & Push Rule (MANDATORY)
+- **Explicit User Request in Current Prompt Only**: NEVER execute git commit or git push automatically unless explicitly instructed by the user in the CURRENT prompt.
+- **Pushing Existing State Only**: When the user requests to "push" or "push code trước rồi làm", it STRICTLY means: commit and push ONLY the existing completed code currently in the workspace BEFORE writing or editing any code for the upcoming request.
+- **Never Mix Future/New Task Changes**: Never combine new, upcoming, or unverified task modifications into a push requested for the existing state. Always push existing code first, and keep subsequent work uncommitted until confirmed.
+
