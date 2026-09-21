@@ -217,3 +217,23 @@ This skill defines mandatory rules, architectural standards, and design system c
 - **No Human-Readable Labels or Formatted Strings in Configs**: NEVER embed localized descriptions, labels, or range strings (e.g. `'7-10 questions'`, `'Few'`) in config objects.
 - **Dynamic Localization in UI**: All human-facing text must be rendered dynamically via `useTranslations` in React components, passing numeric thresholds from configs as parameters (e.g. `t('quotaQuestionsRange', { min: config.minCount, max: config.maxCount })`).
 
+---
+
+## 19. Strict CSS-First Responsive & Anti-Hydration-Mismatch Rule (MANDATORY)
+
+- **100% CSS-First for Layout, Spacing, and Visibility**:
+  - Always use native Tailwind CSS responsive utility classes (`hidden md:block`, `flex md:hidden`, `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, `w-full lg:w-auto`) for all responsive layouts, component visibility, sizing, and spacing.
+  - **Zero JSX Branching on Screen Size**: NEVER use JavaScript viewport checks or hooks (`useMediaQuery`, `useBreakpoint`, `window.innerWidth`) to conditionally mount/unmount UI layout trees (e.g. `{isMobile ? <MobileNav /> : <DesktopNav />}`). Doing so causes severe **SSR Hydration Mismatches** and **Cumulative Layout Shift (CLS)** because the server cannot know the client's screen size during SSR.
+- **Strictly Limited JS Hook Usage (`useBreakpoint` / `useMediaQuery`)**:
+  - `useBreakpoint` / `useMediaQuery` from `@lumen/hooks` is ONLY permitted for imperative, non-visual JavaScript logic that CSS cannot handle (e.g., dynamic chart canvas pixel dimensions in Recharts, portal/popover positioning strategies, attaching touch/drag gestures only on mobile devices).
+
+---
+
+## 20. Strict Keyboard Listener & Shortcut Rule (`useKeyPress`) (MANDATORY)
+
+- **Use `useKeyPress` from `@lumen/hooks`**:
+  - For single or multi-key keyboard event detection, ALWAYS use the shared `useKeyPress` hook from `@lumen/hooks`.
+  - Avoid ad-hoc `window.addEventListener('keydown')` blocks that risk memory leaks, stale closures, or fire inappropriately while the user is typing in `<input>` / `<textarea>`.
+  - Ensure shortcuts specify explicit `modifierKeys` (e.g. `ctrlOrMeta: true`) and respect `ignoreInputElements: true` by default.
+
+

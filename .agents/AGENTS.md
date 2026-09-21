@@ -2,9 +2,12 @@
 
 Before making any modifications or writing code, consult the appropriate skill in `.agents/skills/`:
 
-- For feature planning and requirements analysis: consult the `ba` skill (`.agents/skills/ba/SKILL.md`).
+- For feature planning and requirements analysis: consult the `ba` skill (`.agents/skills/ba/SKILL.md`) or `brainstorming`/`writing-plans`.
 - For backend development: consult the `backend` skill (`.agents/skills/backend/SKILL.md`).
 - For frontend development: consult the `frontend` skill (`.agents/skills/frontend/SKILL.md`).
+- For testing, QA, and test case specifications: consult the `qc` skill (`.agents/skills/qc/SKILL.md`) and `test-driven-development`.
+- For execution workflows, debugging & subagent management: consult the Superpowers skills (`subagent-driven-development`, `systematic-debugging`, `executing-plans`, `verification-before-completion`).
+
 
 DO NOT ignore these skills. The architectural, design system, and syntax rules for each domain are maintained inside their respective skill instructions.
 
@@ -145,6 +148,23 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
   - Adding stable setters/functions unnecessarily bloats dependency lists without providing any functional benefit.
   - Dependency arrays must strictly contain only actual dynamic state, props, or variables that need to trigger re-execution when their values change.
   - `react-hooks/exhaustive-deps` is explicitly disabled in ESLint config.
+
+---
+
+# Strict CSS-First Responsive & Anti-Hydration-Mismatch Rule (MANDATORY)
+- **100% CSS-First for Layout and Visibility**:
+  - Always use native Tailwind CSS responsive utility classes (`hidden md:block`, `flex md:hidden`, `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, `w-full lg:w-auto`) for all responsive layout, component visibility, sizing, and spacing.
+  - **Zero JSX Branching on Screen Size**: NEVER use JavaScript viewport checks or hooks (`useMediaQuery`, `useBreakpoint`, `window.innerWidth`) to conditionally mount/unmount UI layout trees (e.g. `{isMobile ? <MobileNav /> : <DesktopNav />}`). Doing so causes severe **SSR Hydration Mismatches** and **Cumulative Layout Shift (CLS)** because the server cannot know the client's screen size during SSR.
+- **Strictly Limited JS Hook Usage (`useBreakpoint` / `useMediaQuery`)**:
+  - `useBreakpoint` / `useMediaQuery` is ONLY permitted for imperative, non-visual JavaScript logic that CSS cannot handle (e.g., dynamic chart canvas pixel dimensions in Recharts, portal/popover positioning strategies, attaching touch/drag gestures only on mobile devices).
+
+---
+
+# Strict Keyboard Listener & Shortcut Rule (MANDATORY)
+- **Use `useKeyPress` from `@lumen/hooks`**:
+  - For single or multi-key keyboard event detection, ALWAYS use the shared `useKeyPress` hook from `@lumen/hooks`.
+  - Avoid ad-hoc `window.addEventListener('keydown')` blocks that risk memory leaks or fire inappropriately while the user is typing in `<input>` / `<textarea>`.
+  - Ensure shortcuts specify explicit `modifierKeys` (e.g. `ctrlOrMeta: true`) and respect `ignoreInputElements: true` by default.
 
 ---
 
