@@ -1,84 +1,120 @@
-# Lumen Platform - Intelligent English & TOEIC Learning Ecosystem
+# Lumen - Intelligent Vocabulary Learning Platform
 
-Lumen is an all-in-one educational platform that helps learners master English and prepare for the TOEIC exam. It combines cognitive-science learning methods with a modern web architecture to deliver a personalized, fast, and interactive experience.
+Lumen is an intelligent English vocabulary learning platform built around cognitive science and modern web architecture. It empowers learners to acquire, retain, and master vocabulary effectively through spaced repetition, multi-modal study sessions, and gamified progress tracking.
 
 ## Core Philosophy & Methodology
 
-Lumen is built around active learning rather than passive content consumption:
+Lumen is built around active recall and deliberate practice:
 
-1. Smart Vocabulary Acquisition (Spaced Repetition): an intelligent scheduler based on the Ebbinghaus Forgetting Curve (SM-2 algorithm via `ts-fsrs`) tracks memory retention per word and surfaces flashcards at the optimal recall moment.
-2. Daily Dictation (Active Listening): dictation exercises convert auditory signals into text, strengthening listening comprehension and spelling.
-3. Standard TOEIC Mock Tests: a realistic simulator with Listening (Parts 1-4) and Reading (Parts 5-7), full scoring, timers, and per-question explanations.
-4. Grammar Studio & Active Reading: read real-world articles, translate any word or phrase with one click, and study bite-sized grammar units with micro-quizzes.
+1. **Smart Vocabulary Acquisition (Spaced Repetition)**: An intelligent scheduler based on the Ebbinghaus Forgetting Curve (via `ts-fsrs`) calculates memory retention per word and surfaces flashcards at the optimal moment for long-term retention.
+2. **Multi-Modal Study Sessions**: Dynamic learning queues supporting Flashcards, Multiple-Choice (Definition/Term), and Typing exercises with intelligent distractor generation and real-time audio pronunciation (US/UK).
+3. **Daily Dictation (Active Listening)**: Dictation exercises convert auditory signals into typed text, strengthening listening comprehension and spelling accuracy.
+4. **Gamified Progress & Habit Formation**: Daily streaks with streak freeze protection, XP leaderboard, mastery level tracking (Levels 0-6), and interactive activity heatmaps.
 
 ## Authentication (Passwordless)
 
-Lumen does not use passwords. There are exactly two login methods:
+Lumen uses a secure, passwordless authentication flow with two login methods:
 
-- Google OAuth2: the client sends a Google ID token; the server verifies it and logs the user in (creating the account on first use).
-- Email OTP: the user enters an email, receives a 6-digit code, and enters it to log in. The account is auto-created on first verification.
+- **Google OAuth2**: One-tap authentication via Google ID token verification (auto-creates account on first login).
+- **Email OTP**: Secure 6-digit verification code delivered via transactional email with a 5-minute TTL stored in Redis.
 
 Backend endpoints (prefix `/api/iam`):
 
-- `POST /email-otp/send` - generates a 6-digit OTP, stores a hashed copy in Redis (5-minute TTL), and emails it.
-- `POST /login` - verifies the OTP, auto-registers the user if needed (`AuthProvider.EMAIL`), and returns access + refresh tokens.
-- `POST /google-login` - verifies a Google ID token and returns tokens.
+- `POST /email-otp/send` - Generates a 6-digit OTP, stores hashed copy in Redis, and sends email.
+- `POST /login` - Verifies OTP, auto-registers user if needed (`AuthProvider.EMAIL`), and sets authentication cookies.
+- `POST /google-login` - Verifies Google ID token and returns session tokens.
 - `POST /refresh`, `POST /logout`, `GET /me`, `GET /sessions`, `PUT /profile`.
-
-The `AuthProvider` enum is `GOOGLE` | `EMAIL`. The `password` column was removed from the `iam_users` table (see `backend/migrations/0001_drop_iam_users_password.sql`).
 
 ## System Architecture
 
-The platform is organized as a parent repository with two workspaces: a NestJS backend and a Turborepo frontend monorepo.
+The platform is structured as a parent workspace comprising a NestJS Fastify DDD backend and a Turborepo frontend monorepo.
 
 ```mermaid
 graph TD
-    Client[End Users] -->|Next.js App /api/| Web[Next.js Web Application]
-    AdminUser[Administrators] -->|Vite SPA /api/| AdminSPA[Vite Admin SPA]
+    Client[Learners / Web Users] -->|Web Browser / PWA| Web[Next.js 16 Web Application]
 
     subgraph "Frontend Workspace (Turborepo Monorepo)"
         Web
-        AdminSPA
-        Web -.-> Shared["Shared UIKit (@lumen/uikit)"]
-        AdminSPA -.-> Shared
+        Web -.-> SharedUIKit["Shared UIKit (@lumen/uikit)"]
+        Web -.-> SharedHooks["Shared Hooks (@lumen/hooks)"]
+        Web -.-> SharedAPI["Shared API (@lumen/shared-api)"]
+        Web -.-> SharedUtils["Shared Utils (@lumen/utils)"]
     end
 
-    Web -->|HTTP/REST| Backend[NestJS Modular Monolith]
-    AdminSPA -->|HTTP/REST| Backend
+    Web -->|HTTPS / REST API| Backend[NestJS Modular Monolith API]
 
-    subgraph "Backend (NestJS Modular Monolith)"
-        Backend --> IAM[IAM Module]
-        Backend --> Vocab[Vocabulary Module]
-        Backend --> Test[TOEIC Module]
-        Backend --> Queue[BullMQ Queue]
+    subgraph "Backend (NestJS Fastify + CQRS Monolith)"
+        Backend --> CQRS[CQRS & In-Process Event Bus]
+        CQRS --> IAM[IAM Context]
+        CQRS --> Vocab[Vocabulary & FSRS Context]
+        CQRS --> Progress[Progress & Gamification Context]
+        CQRS --> Material[Material & Dictation Context]
+        CQRS --> Notif[Notification Context]
+
         IAM --> DB[(PostgreSQL / Neon)]
         Vocab --> DB
-        Test --> DB
-        Queue --> Redis[(Upstash Redis)]
+        Progress --> DB
+        Material --> DB
+        Notif --> DB
+
+        IAM --> Redis[(Upstash Redis: OTP & Cache)]
+        Backend --> Throttler[Throttler / Rate Limiting]
+        Throttler --> Redis
+        IAM --> Resend[Resend Email Service]
+        Material --> Storage[(Cloudflare R2 / S3 Media)]
     end
 ```
 
 Repository layout:
 
-- `backend/` - Modular Monolith API (NestJS).
-- `frontend/` - Turborepo monorepo containing `apps/web`, `apps/admin`, and shared `packages/`.
+- `backend/` - Modular Monolith API (NestJS Fastify adapter, DDD, CQRS).
+- `frontend/` - Turborepo monorepo containing `apps/web` and shared `packages/`.
 
 ## Technical Stack
 
 ### Backend
-- NestJS 11 (Modular Monolith, DDD, CQRS via `@nestjs/cqrs`)
-- Fastify platform adapter
-- PostgreSQL via TypeORM (hosted on Neon)
-- BullMQ + Upstash Redis for background jobs (email sending, score processing)
-- JWT authentication (`@nestjs/jwt`) with access + refresh tokens stored as HTTP-only cookies
-- Resend for transactional email (verification OTP template)
-- Swagger / OpenAPI docs
-- Throttler for rate limiting
+- **Framework**: NestJS 11 (Modular Monolith, DDD, CQRS via `@nestjs/cqrs`)
+- **HTTP Adapter**: Fastify platform adapter (`@nestjs/platform-fastify`)
+- **Database & ORM**: PostgreSQL via TypeORM (hosted on Neon)
+- **Caching & OTP**: Upstash Redis (`ioredis` + `cache-manager-redis-yet`)
+- **Email**: Resend for transactional verification emails
+- **Storage**: Cloudflare R2 / S3 for vocabulary audio and image assets
+- **Authentication**: JWT (`@nestjs/jwt`) with access + refresh tokens stored as HTTP-only cookies
+- **Spaced Repetition**: `ts-fsrs` algorithm engine
+- **Documentation**: Swagger / OpenAPI
+- **Quality & Testing**: Jest unit testing across CQRS handlers, event listeners, domain aggregates, and DTOs (under `__tests__/` subfolders)
 
 ### Frontend
-- `apps/web`: Next.js 16 (App Router), React 19, Tailwind CSS v4, next-intl (i18n: en/vi), Framer Motion, TanStack Query, Zustand, React Hook Form + Zod, `@react-oauth/google`, base-ui. Installable as a PWA via `manifest.ts`.
-- `apps/admin`: Vite + React 19 SPA, React Router v7, TanStack Table, Tiptap rich-text editor, Recharts, oxlint.
-- Shared packages: `@lumen/uikit` (design system), `@lumen/shared-api` (API clients + DTOs), `@lumen/hooks`, `@lumen/utils`, `@lumen/eslint-config`, `@lumen/typescript-config`.
+- **Application**: Next.js 16 (App Router), React 19, Tailwind CSS v4, `next-intl` (i18n: en/vi), Framer Motion, TanStack Query, Zustand, React Hook Form + Zod, `@react-oauth/google`, Base UI. Installable as a Progressive Web App (PWA).
+- **Shared Packages**:
+  - `@lumen/uikit`: Design system tokens, dialogs, buttons, and UI primitives.
+  - `@lumen/shared-api`: Centralized BaseApiService, BaseResponse schemas, and typed `extractApiErrors`.
+  - `@lumen/hooks`: Shared hook library (`useKeyPress`, `useBreakpoint`, `useNetworkState`, `useLongPress`, `useCountdown`, `useContinuousRetry`, `useDocumentTitle`, `useFavicon`, `usePreferredLanguage`, etc.).
+  - `@lumen/utils`: Generic utilities (timing, string helpers, date formatters).
+  - `@lumen/eslint-config` & `@lumen/typescript-config`.
+- **Quality & Testing**: Vitest + `@testing-library/react` + `jsdom` with path alias resolution.
+
+## Testing & Quality Gates
+
+Lumen enforces strict automated test verification across both backend and frontend:
+
+- **Backend Unit Tests (Jest)**:
+  ```bash
+  cd backend
+  pnpm test              # runs all unit tests under __tests__/
+  pnpm run lint          # ESLint verification
+  pnpm exec tsc --noEmit # TypeScript type check
+  ```
+- **Frontend Unit Tests (Vitest)**:
+  ```bash
+  cd frontend
+  pnpm test              # runs Vitest across apps and shared packages
+  pnpm run lint          # ESLint check
+  pnpm --filter web exec tsc --noEmit # TypeScript type check
+  ```
+- **CI / GitHub Actions**:
+  - Defined in `.github/workflows/ci.yml`.
+  - Dual parallel jobs: `backend-quality-gates` and `frontend-quality-gates` running formatting, linting, typechecking, unit tests, and production builds (`nest build` & `next build`) on every push and pull request.
 
 ## Development Setup
 
@@ -93,17 +129,17 @@ cd backend
 cp .env.example .env      # fill DATABASE_URL, JWT_*, GOOGLE_CLIENT_ID, UPSTASH_REDIS_URL, RESEND_API_KEY, R2_*, etc.
 pnpm install
 pnpm run db:up             # local Postgres/Redis via Docker (if used)
-pnpm run seed              # seed vocabulary, articles, tests, users
-pnpm run start:dev         # http://localhost:3000  (Swagger at /docs or /api)
+pnpm run seed              # seed vocabulary words, folders, and users
+pnpm run start:dev         # http://localhost:3000 (Swagger at /docs or /api)
 ```
 
 ### Frontend
 ```bash
 cd frontend
 pnpm install
-pnpm run dev               # starts apps/web (default Next port) and apps/admin (Vite port)
+pnpm run dev               # starts apps/web (Next.js dev server)
+pnpm test                  # runs Vitest test runner
 ```
-Per-app scripts live in `apps/web` and `apps/admin` (see their READMEs).
 
 ## Environment Variables (backend)
 - `NODE_ENV`, `PORT`, `COOKIE_SECRET`, `FRONTEND_URL`, `BACKEND_URL`
@@ -114,13 +150,7 @@ Per-app scripts live in `apps/web` and `apps/admin` (see their READMEs).
 - `RESEND_API_KEY`
 - `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT`, `R2_PUBLIC_URL`
 
-## CI/CD & Deployment
-- Docker: `Dockerfile.web` (Next.js standalone) and `Dockerfile.admin` (Vite static + Nginx).
-- GitHub Actions builds images on merge to `main` and pushes to GitHub Container Registry (GHCR), then triggers a Render deploy hook.
-- A `Dockerfile.vercel` variant supports Vercel Fluid Compute to avoid platform lock-in.
-
 ## Workspaces
 - Backend README: `backend/README.md`
 - Frontend monorepo README: `frontend/README.md`
 - Web app README: `frontend/apps/web/README.md`
-- Admin app README: `frontend/apps/admin/README.md`
