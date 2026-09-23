@@ -14,7 +14,7 @@
    - **Zero Custom Button Overrides**: Never manually override `border`, `bg`, `rounded`, `shadow`, or padding classes on the `<Button>` component.
    - **Variant & Size Props Only**: Access all button styles exclusively via props:
      - `variant`: `'default'` | `'secondary'` | `'outline'` | `'ghost'` | `'subtle'` | `'destructive'`
-     - `size`: `'default'` | `'sm'` | `'lg'` | `'icon'` | `'icon-sm'`
+     - `size`: `'default'` | `'xs'` | `'sm'` | `'lg'` | `'icon'`
    - **Secondary Variant Priority**: For secondary / companion actions (such as "Luyện tập" or "Thẻ ghi nhớ" alongside primary "Học từ mới"), always use `variant="secondary"`. Icons inside secondary buttons must inherit text color naturally without manual color overrides.
 4. **Floating Bottom Action Bars**:
    - Bottom floating bars (e.g. `StudyBottomActionBar`) use standard pill containers:
@@ -53,7 +53,7 @@ All trigger components built on `@base-ui` (`TooltipTrigger`, `PopoverTrigger`, 
 
 ```tsx
 // ✅ Correct
-<TooltipTrigger render={<Button variant="ghost" size="icon-sm" className="..." />} />
+<TooltipTrigger render={<IconButton variant="ghost" className="..." />} />
 
 // ❌ Incorrect (Do NOT use asChild on Base UI triggers)
 <TooltipTrigger asChild><button ... /></TooltipTrigger>

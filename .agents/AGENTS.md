@@ -73,12 +73,39 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
 
 ---
 
+# Strict Zero-Customization & Design System Component Fidelity Rule (MANDATORY)
+- **Zero-Customization Policy on Shared / UIKit Components**:
+  - Whenever using shared UIKit components (`<Button>`, `<Card>`, `<Badge>`, `<Dialog>`, `<Sheet>`, `<Input>`, `<Avatar>`, etc.), NEVER arbitrarily override, tweak, or patch styles via `className`.
+  - **Strictly Forbidden Overrides**:
+    1. **NO Custom `shadow-*`**: Absolutely NEVER inject `shadow-xs`, `shadow-sm`, `shadow-md`, `shadow-lg`, `shadow-xl`, `shadow-2xl`, or `shadow-none` onto UIKit components. Components manage their own elevation tokens.
+    2. **NO Custom `rounded-*`**: Absolutely NEVER inject `rounded-3xl`, `rounded-2xl`, `rounded-full`, `rounded-lg`, `rounded-md`, or `rounded-none` onto UIKit components. Components already have standard design tokens (e.g. `rounded-xl`).
+    3. **NO Custom `border-*` or `bg-*`**: Absolutely NEVER inject `border-none`, `border-border/...`, `bg-card`, `bg-muted/...` directly. Always use the built-in `variant` prop (`default`, `muted`, `subtle`, `outline`, etc.).
+    4. **NO Custom Padding / Sizing Overrides**: Absolutely NEVER write ad-hoc padding (`p-...`, `px-...`, `py-...`) or height/width classes (`h-9`, `w-...`) on `<Button>`, `<Badge>`, or `<Card>` to tweak sizes. ALWAYS use the component's `size` prop (`sm`, `default`, `lg`, `icon`, `icon-sm`).
+  - **Single Source of Truth**: Shared components are global design standards. Never patch "a little size, a little shadow, a little rounded" locally in features.
+
+---
+
 # Button Styling Rule
 - **No Manual Button Re-styling (Prioritize Variants)**: NEVER arbitrarily re-style or manually override styles (e.g. overriding `border`, `rounded`, `bg`, `shadow`, padding) on `<Button>`. The system's `Button` component already provides a full set of `variant`s (`default`, `secondary`, `outline`, `ghost`, `subtle`, `destructive`) and `size`s (`default`, `sm`, `lg`, `icon`, `icon-sm`). You MUST use existing `variant` and `size` props directly.
 
 ---
 
+# Badge Styling Rule (MANDATORY)
+- **No Manual Badge / Pill Re-styling (Prioritize Variants)**: NEVER write ad-hoc repetitive inline badge/pill boilerplate (`px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600...`, `bg-amber-500/10 text-amber-600...`, etc.).
+- ALWAYS use the centralized `<Badge>` component from `@lumen/uikit/components`.
+- Use the built-in `variant` (`default`, `secondary`, `subtle`, `outline`, `solid`, `success`, `warning`, `destructive`, `info`) and `size` (`sm`, `default`, `lg`) props directly.
+
+---
+
+# Card Component & Zero-Hover Rule (MANDATORY)
+- **Use `<Card variant="muted">` for Inner Informational Blocks**: ALWAYS use `<Card variant="muted" size="sm">` from `@lumen/uikit/components` for inner informational cards, stat chips, and nested stage blocks instead of writing custom `div` boxes with repetitive `bg-muted/... rounded-...` classes.
+- **No Manual Card Re-styling (Prioritize Variants & Zero-Override)**: NEVER manually override or inject custom `shadow-*` (`shadow-sm`, `shadow-xs`, `shadow-md`, `shadow-xl`), custom `rounded-*` (`rounded-3xl`, `rounded-2xl`), custom `border-*` (`border-none`), or custom `bg-*` (`bg-card`) onto `<Card>`. Use `variant` and `size` directly.
+- **Zero-Hover on Non-Interactive Elements**: Cards, tiles, badges, or list items that have NO click action, NO `onClick`, and NO `href` MUST NEVER have hover effects (`hover:bg-...`, `hover:scale-...`, `hover:shadow-...`) or `cursor-pointer`. Interactive states are strictly reserved for clickable components.
+
+---
+
 # Strict Dialog & Modal Styling Rule (MANDATORY)
+
 - **No Manual Dialog / Modal Re-styling**:
   - NEVER arbitrarily re-style or manually override background overlays (`bg-background/95`, `backdrop-blur-*`), border styles (`border-border/60`, `border-border/50`), padding, or rounded corners on `<DialogContent>` or `<DialogHeader>`.
   - The standard `Dialog` component in UIKit (`@lumen/uikit/components`) already defines the standard surface, backdrop, elevation, and close button.

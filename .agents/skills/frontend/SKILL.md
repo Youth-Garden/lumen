@@ -67,13 +67,21 @@ This skill defines mandatory rules, architectural standards, and design system c
 - **Line Count Limit**: Module-specific components (`features/[module]/components/`) and page files (`features/[module]/pages/`) MUST NOT exceed **300 lines**. If a file grows beyond 300 lines, refactor it by either (1) extracting sub-components into separate files, or (2) extracting complex logic into a custom hook.
 - **Sub-folder Organization**: Inside `features/[module]/components/`, related components MUST be grouped into dedicated sub-folders based on feature/domain context. Never dump all module components into a single flat `components/` directory.
 
-### 3.3 Design System & UIKit Usage
-
+### 3.3 Design System & UIKit Usage (Strict Zero-Customization Policy)
 - **Strict UIKit Component & Icon Reuse**: ALWAYS use components from `@lumen/uikit/components`. All SVGs and icons must be imported from `@lumen/uikit/icons` (via `Icons` or icons registered in UIKit). Never define raw SVG components inside `features/` or `app/`.
-- **No Manual Button Re-styling — Prioritize Variants**: Do NOT re-style or manually override the `<Button>` component's styles (e.g. arbitrarily overriding `border`, `rounded`, `bg`, `shadow`, or padding). The system's `Button` component already provides a full set of `variant`s (`default`, `secondary`, `outline`, `ghost`, `subtle`, `destructive`) and `size`s (`default`, `sm`, `lg`, `icon`, `icon-sm`). You MUST use the existing `variant` and `size` props directly.
+- **Zero-Customization on Shared Components (MANDATORY)**:
+  - NEVER arbitrarily tweak or override shared components (`<Button>`, `<Card>`, `<Badge>`, `<Dialog>`, `<Sheet>`, `<Input>`, `<Avatar>`) with ad-hoc classes.
+  - **NO Custom `shadow-*`**: Never inject `shadow-xs`, `shadow-sm`, `shadow-md`, `shadow-lg`, `shadow-xl`, or `shadow-none`.
+  - **NO Custom `rounded-*`**: Never inject `rounded-3xl`, `rounded-2xl`, `rounded-full`, `rounded-lg`, or `rounded-none`. Use the component's built-in radius tokens.
+  - **NO Custom `border-*` / `bg-*`**: Never inject `border-none`, `bg-card`, `bg-muted/...`. Always use the built-in `variant` prop (`default`, `muted`, `outline`, `subtle`, etc.).
+  - **NO Custom Sizing / Padding**: Never inject ad-hoc height (`h-9`), width (`w-...`), or padding (`p-...`, `px-...`, `py-...`) to tweak button/badge/card sizes. Always use the built-in `size` prop (`sm`, `default`, `lg`, `icon`, `icon-sm`).
+- **No Manual Button Re-styling — Prioritize Variants**: Do NOT re-style or manually override the `<Button>` component's styles (e.g. overriding `border`, `rounded`, `bg`, `shadow`, or padding). The system's `Button` component already provides a full set of `variant`s (`default`, `secondary`, `outline`, `ghost`, `subtle`, `destructive`) and `size`s (`default`, `sm`, `lg`, `icon`, `icon-sm`). You MUST use the existing `variant` and `size` props directly.
 - **No Manual Dialog / Modal Re-styling**: NEVER manually override background overlays (`bg-background/95`, `backdrop-blur-*`), border styles (`border-border/60`), custom padding, or rounded corners on `<DialogContent>` or `<DialogHeader>`. Standard UIKit Dialog already defines standard surface, elevation, and close button. Sizing classes should strictly only manage dimensional constraints (e.g. `w-[94vw] sm:max-w-5xl md:max-w-6xl h-[86vh] flex flex-col overflow-hidden`). Never inject arbitrary divider lines (`border-b`, `border-t`) into headers or content unless explicitly requested.
 - **No Nested Button in Link**: NEVER nest `<Button>` inside a Next.js `<Link>` or vice versa. Style `<Link>` directly, or use `asChild`.
-- **Card Component Variants**: Use `default` (white background) as standard. Use `variant="muted"` when explicit muted background is required.
+- **Card Component & Zero-Override Rule (MANDATORY)**:
+  - ALWAYS use the global `<Card>` component from `@lumen/uikit/components`. Use `default` (standard surface) for outer containers and `variant="muted"` (with `size="sm"`) for inner informational cards, stat chips, and nested stage blocks. NEVER invent ad-hoc `div` containers with repetitive custom `bg-muted/... rounded-...` classes.
+  - **No Manual Card Re-styling**: NEVER manually override or inject custom `shadow-*`, custom `rounded-*`, custom `border-*`, or custom `bg-*` onto `<Card>`. Use `variant` and `size` directly.
+  - **Zero-Hover on Non-Interactive Elements (MANDATORY)**: Cards, tiles, badges, or list items that have NO click action, NO `onClick`, and NO `href` MUST NEVER have hover effects (`hover:bg-...`, `hover:scale-...`, `hover:shadow-...`, `hover:border-...`) or `cursor-pointer`. Interactive states are strictly reserved for clickable components.
 
 ### 3.4 Anti-Border / Anti-Card-Clutter Aesthetics (MANDATORY)
 

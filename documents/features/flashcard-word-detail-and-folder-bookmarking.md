@@ -60,7 +60,7 @@ During flashcard study sessions and quizzes, learners frequently encounter words
   - Dotted underline (`decoration-dotted decoration-muted-foreground/50 hover:decoration-primary`), subtle hover transition.
   - Touch-friendly hit target padding.
 - **Save Action Button**:
-  - Ghost icon button in sheet header (`Icons name="folder-plus"` or `"bookmark"`), size `icon-sm`.
+  - Ghost icon button in sheet header (`Icons name="folder-plus"` or `"bookmark"`), size `icon`.
 - **Folder Picker Bottom Sheet (`SaveToFolderSheet`)**:
   - Sheet modal with clean list of user folders, radio/selection tick indicator, and empty state if no custom folders exist yet with a prompt to create one.
 
