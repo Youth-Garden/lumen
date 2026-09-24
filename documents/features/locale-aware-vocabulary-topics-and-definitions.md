@@ -1,6 +1,6 @@
 # Feature Plan: Locale-Aware Vocabulary Topics, Words & Definitions
 
-> **Status**: Approved
+> **Status**: SUPERSEDED (Unified and superseded by [generic-i18n-resolver-unification.md](./generic-i18n-resolver-unification.md))
 > **Author**: Antigravity Pair Programmer / BA
 > **Date**: 2026-09-24
 > **Target Module**: `frontend/apps/web/src/features/vocabulary/...` & `frontend/apps/web/src/features/study/...`

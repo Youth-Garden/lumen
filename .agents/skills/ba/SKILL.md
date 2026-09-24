@@ -61,6 +61,12 @@ Briefly describe the purpose of the feature, the problem it solves, and the busi
 - **Base UI Triggers**: Use `render={<Element />}` prop for `@lumen/uikit` triggers.
 - **Z-Index Layering**: Standard 98 (background portals) / 99 (backdrop) / 100 (top active portal).
 - **i18n Localization**: All UI copy stored in `messages/{locale}.json` with `camelCase` keys.
+- **Dynamic Multilingual Content Architecture (MANDATORY)**:
+  - All dynamic data across domains (vocabulary words, definitions, sentences, topics, folder names/descriptions) MUST use generic `I18nString` (`Record<string, string> | string` in Backend, `I18nString` in Frontend).
+  - NEVER create ad-hoc language fields (`definitionEn`, `translationVi`, `name` + `viName`, `topicVi`).
+  - Frontend mappers parse incoming data via universal `toI18nString(raw)`.
+  - UI consumes text via universal `i18nText(field, locale)` and `getSecondaryI18nText(field, locale)` for secondary/alternative translations.
+  - NEVER hardcode language swaps (e.g. `locale === 'en' ? 'vi' : 'en'`). System MUST support infinite future locales.
 
 ---
 
@@ -97,6 +103,8 @@ Briefly describe the purpose of the feature, the problem it solves, and the busi
 - [ ] All custom React hooks <= 300 lines of code.
 - [ ] Clean domain separation between `vocabulary`, `study`, `progress`, etc.
 - [ ] No hardcoded UI text strings or emojis used as icons.
+- [ ] No raw property access or manual indexing on `I18nString` (always use `i18nText`, `matchesI18n`, `includesI18n`).
+- [ ] Mandatory Enums used for all predefined fixed domain concepts, options, and parameters.
 
 ---
 

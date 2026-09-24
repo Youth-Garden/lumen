@@ -292,3 +292,10 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
   - Repositories and Domain Services MUST NOT declare default value initializers (`page = 1, limit = 20`) or fallback operators (`|| 1, || 20`) in method signatures. They receive exact typed arguments passed from handlers.
 - **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, `PaginatedQuery`, `BaseFilterQuery`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
 - **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.
+
+## 16. Strict Universal Multilingual Schema & Future-Proof Localization Rule (MANDATORY)
+
+- **Uniform Multilingual Data Schema**: All dynamic multilingual data fields across Backend (Entities, DTOs, DB JSONB columns) MUST strictly and exclusively use the uniform generic schema (`Record<string, string> | string`).
+- **Zero Schema Ad-hoc / Bypasses**: Absolutely NEVER create ad-hoc field variations like `definitionEn`, `translationVi`, `sentenceEn`, `topicVi`, `name` + `viName` or custom property suffixes in Database Entities, Response DTOs, or Domain Entities.
+- **Future-Proof Multi-Language Support**: Backend JSONB columns and response DTOs must store and return full language maps (`{ en: '...', vi: '...', ja: '...', ko: '...' }`) without hardcoding or restricting to only two languages.
+- **Unified Query Serialization**: Dynamic JSONB / text columns parsed from raw SQL or TypeORM must pass through generic JSON parsing (`parseI18nValue`) without hardcoding key assumptions.

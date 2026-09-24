@@ -245,4 +245,41 @@ This skill defines mandatory rules, architectural standards, and design system c
   - Avoid ad-hoc `window.addEventListener('keydown')` blocks that risk memory leaks, stale closures, or fire inappropriately while the user is typing in `<input>` / `<textarea>`.
   - Ensure shortcuts specify explicit `modifierKeys` (e.g. `ctrlOrMeta: true`) and respect `ignoreInputElements: true` by default.
 
+---
+
+## 21. Strict Universal Multilingual Schema & Generic Helpers Rule (`i18nText`, `toI18nString`, `getSecondaryI18nText`) (MANDATORY)
+
+- **Uniform Multilingual Data Schema**: All dynamic multilingual data fields across Backend (Entities, DTOs, DB columns) and Frontend (Types, Mappers) MUST strictly and exclusively use the uniform `I18nString` schema (`Partial<Record<Locale, string>> & Record<string, string>`).
+- **Zero Schema Ad-hoc / Bypasses**: Absolutely NEVER create ad-hoc field variations like `definitionEn`, `translationVi`, `sentenceEn`, `topicVi`, `viName`, `enName` or custom property suffixes across entities, mappers, or DTOs.
+- **Strict Prohibition on Manual Indexing & Raw Property Access on `I18nString`**:
+  - ABSOLUTELY NEVER access raw property fields or manual indexing (`obj.en`, `obj.vi`, `obj['en']`, `.[0]`) on `I18nString` objects.
+  - ALWAYS resolve text via the generic `i18nText(target, Locale.EN)` or `i18nText(target, locale)` passing `Locale` from the enum.
+  - If querying or matching against `I18nString`, ALWAYS use `includesI18n(input, query)`.
+- **Mandatory Enums for Fixed Predefined Values**:
+  - Any domain concept, setting, configuration, or parameter that has predefined fixed values and can be used as a type MUST strictly and exclusively be defined as a TypeScript `enum` (e.g. `Locale`, `StudySessionMode`, `FlashcardRating`, `PronunciationAccent`, `MaterialTypeEnum`, `RouteEnum`).
+  - NEVER use bare string literals (`'en'`, `'vi'`) or string literal unions (`'en' | 'vi'`) when defining core schemas, parameters, or types.
+- **Single Universal Data Mapper (`toI18nString`)**: All incoming raw JSONB / object data in mappers MUST be parsed through `toI18nString(raw)` from `services/core/core.mappers.ts`. It returns `{}` without redundant fallback strings.
+- **Universal Text Resolvers with Switch-Case**:
+  - `i18nText(input, locale = Locale.EN)`: Resolves active locale from `I18nString` via a clean `switch (locale)` structure.
+  - `getSecondaryI18nText(input, currentLocale = Locale.EN)`: Resolves an alternative non-active translation via `switch (currentLocale)` without hardcoded two-language swaps.
+- **Dynamic User Native Language Checking**:
+  - Always check user's active native language via `const locale = useLocale()` from `@/shared/hooks` returning `Locale` enum directly.
+  - NEVER write hardcoded language ternaries in JSX (e.g. `{locale === Locale.VI ? 'Tiếp tục' : 'Finish'}`). All static copy MUST reside in `messages/{locale}.json` and be rendered via `t('key')` or `t.rich('key', ...)`.
+- **Zero Derivative / Duplicate Helpers & Zero Redundant Type Aliases**:
+  - Do NOT create ad-hoc functions like `getLocalizedText`, `getLocalizedTopicName`, `getLocalizedWordMeaning`, or `resolveDefinitionMeaning`. Use `i18nText` and `getSecondaryI18nText` directly.
+  - NEVER create redundant type alias reassignments (`type I18nMap = ...; type I18nString = I18nMap;`, `export const useAppLocale = useLocale;`). Keep definitions simple, direct, and uncluttered.
+  - Eliminate redundant fallback checks and redundant nested `if` statements. Keep pure logic clean and minimal.
+
+---
+
+## 22. Strict Part of Speech Enum & Normalization (`PartOfSpeech`, `normalizePartOfSpeech`, `formatPartOfSpeechShort`) (MANDATORY)
+
+- **PartOfSpeech Enum**: All parts of speech must strictly resolve to standard values from `PartOfSpeech` enum (`noun`, `verb`, `adjective`, `adverb`, `preposition`, `conjunction`, `pronoun`, `interjection`, `phrase`, `idiom`, `numeral`).
+- **Universal Normalization Utility (`normalizePartOfSpeech`)**:
+  - NEVER write ad-hoc repetitive inline checks or `if-else` chains for part of speech normalization (e.g. `trimmed === 'n' || trimmed === 'noun'`).
+  - ALWAYS use `normalizePartOfSpeech(pos)` from `@/shared/utils` for canonical normalization.
+  - ALWAYS use `formatPartOfSpeechShort(pos)` from `@/shared/utils` when rendering concise abbreviations (`n.`, `v.`, `adj.`, `adv.`, `prep.`, etc.).
+
+
+
 

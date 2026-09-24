@@ -1,115 +1,80 @@
-# Feature Plan: NGSL Open-Source Vocabulary Data Seeding Pipeline
+# Feature Plan: System Vocabulary Folders & Thematic Sub-Topic Architecture
 
 > **Status**: In Review
 > **Author**: Antigravity Pair Programmer / BA
 > **Date**: 2026-09-24
-> **Target Module**: `backend/src/seed-ngsl-vocabulary.ts`, `backend/package.json`
+> **Target Module**: `backend/src/contexts/vocabulary/infrastructure/seed/`, `frontend/apps/web/src/features/vocabulary/components/cards/folder-card.tsx`
 
 ---
 
 ## 1. Overview & Objectives
 
-This feature establishes an automated Data Ingestion & Seeding Pipeline to import official, open-source English vocabulary datasets from the **NGSL Project** (New General Service List by Browne, Culligan & Phillips, licensed under Creative Commons Attribution-ShareAlike 4.0 - 100% free for commercial use).
+This feature establishes concise, human-friendly names and dedicated high-quality Unsplash cover images for all system vocabulary folders, while fixing sub-topic word distribution across system datasets.
 
 ### Key Business & Educational Objectives:
-1. **Legally Compliant Core Content**: Replace copyrighted vocabulary books with official, open-access, research-backed word lists covering General, Business, Academic, and Spoken English.
-2. **Structured Category & Folder Hierarchy**: Automatically seed 5 structured Folders containing 7,000+ curated vocabulary words categorized by domain and topic:
-   - **NGSL Core** (2,809 words): Covers ~92% of standard English texts (General English).
-   - **TSL (TOEIC Service List)** (1,200 words): Covers ~99% of TOEIC test vocabulary across business topics.
-   - **NAWL (New Academic Word List)** (960 words): Academic English for IELTS & TOEFL reading/writing.
-   - **BSL (Business Service List)** (1,700 words): Corporate, financial, and office communication.
-   - **NGSL-S (Spoken)** (721 words): Conversational English for listening and speaking.
-   - **NDL (New Dolch List)** (874 words): Foundational vocabulary for beginners and young learners.
-   - **NGSL-GR (Graded Reader)** (up to 5,000 words): Mid-frequency expansion for intermediate to advanced learners.
-3. **Automated Enrichment & Image Strategy**:
-   - Assigns CEFR levels (`A1`, `A2`, `B1`, `B2`, `C1`) based on NGSL frequency rank thresholds and CEFR-J mappings.
-   - Generates bilingual definitions (`definitionEn`, `definitionVi`), example sentences (`exampleEn`, `exampleVi`), parts of speech, and phonetic IPA.
-   - **Image Handling Strategy**: Unsplash / Pexels API + AI Illustration fallback for concrete terms (nouns/objects), leaving abstract words clean without inaccurate image clutter.
+1. **Concise & Standardized System Folder Naming**:
+   - Replace long redundant titles with clean, meaningful folder names:
+     - `ngsl-core`: **Tiếng Anh giao tiếp (NGSL)** / **General English (NGSL)**
+     - `tsl-toeic`: **Từ vựng TOEIC (TSL)** / **TOEIC Vocabulary (TSL)**
+     - `nawl-academic`: **Tiếng Anh học thuật (NAWL)** / **Academic English (NAWL)**
+     - `bsl-business`: **Tiếng Anh thương mại (BSL)** / **Business English (BSL)**
+     - `ngsl-spoken`: **Tiếng Anh đàm thoại (NGSL-S)** / **Spoken English (NGSL-S)**
+     - `ndl-foundation`: **Tiếng Anh nền tảng (NDL)** / **Foundation English (NDL)**
+2. **Dedicated Unsplash Cover Images for Every System Folder**:
+   - Every system folder MUST have its own high-resolution Unsplash cover image reflecting its domain (communication, TOEIC, academic, business, spoken, foundation).
+   - Avatar-style generated patterns (`getFolderCoverUrl`) are strictly reserved for custom user folders (`isUserFolder === true`).
+3. **Perfect Even Word Distribution Across Sub-Topics**:
+   - Fix topic partitioning algorithm: `itemsPerTopic = Math.ceil(totalRows / subTopics.length)` so that words in each folder are evenly divided across 5 to 12 sub-topics (150–230 words per sub-topic).
+   - Re-assign sub-topics for all existing words in database to eliminate giant monolithic topics.
 
 ---
 
 ## 2. Requirements & Scope
 
 ### Functional Requirements
-- [ ] **Data Fetching & Extraction**:
-  - Script fetches raw CSV/XLSX datasets from official NGSL Project endpoints (`https://www.newgeneralservicelist.com/s/...`).
-  - Implements CSV parsing and data normalization.
-- [ ] **Database Schema Ingestion**:
-  - Upserts `FolderEntity`, `TopicEntity`, and `VocabularyWordEntity` in PostgreSQL.
-  - Prevents duplicate word insertions using unique index constraints (`(topicId, word)`).
-- [ ] **CEFR Level Inference & CEFR-J Mapping**:
-  - Maps frequency ranks to CEFR tiers:
-    - Rank 1 – 1,000: `A1` – `A2` (Elementary / Pre-Intermediate)
-    - Rank 1,001 – 2,000: `B1` (Intermediate)
-    - Rank 2,001 – 2,809+: `B2` – `C1` (Upper-Intermediate / Advanced)
-- [ ] **Cloudinary CDN Image Pipeline Integration**:
-  - Automatically executes image search via Unsplash API, uploads to Cloudinary CDN, and updates `imageUrl` fields for all seeded topics and words.
-- [ ] **NPM Runnable Command**:
-  - Register `"seed:ngsl"` in `backend/package.json` for easy CLI execution (`pnpm --filter backend seed:ngsl`).
+- [ ] **System Folder Naming & Category Standard (`ngsl-datasets.config.ts`)**:
+  - Update `NGSL_DATASETS` definitions with clean, concise titles in English & Vietnamese.
+- [ ] **Dedicated System Folder Cover Map (`folder-card.tsx`)**:
+  - Register dedicated Unsplash image URLs in `FOLDER_COVERS` for all system folders.
+  - Fallback avatar patterns (`getFolderCoverUrl`) are ONLY applied if `isSystem === false` and no custom cover is uploaded.
+- [ ] **Sub-Topic Distribution Algorithm (`assignSubTopic`)**:
+  - Calculate `itemsPerTopic` based on total dataset count:
+    ```ts
+    const itemsPerTopic = Math.max(1, Math.ceil(totalRows / subTopics.length));
+    const targetIdx = Math.min(Math.floor(index / itemsPerTopic), subTopics.length - 1);
+    ```
+- [ ] **Sub-Topic Image & Vietsub Completeness**:
+  - Every sub-topic possesses a localized Vietnamese title (`topicVi`) and Unsplash cover image (`topicImageUrl`).
 
 ### Non-Functional Requirements
-- **Performance**: Batch database upserts (`chunks` of 100 words per transaction) to prevent connection timeouts and memory overflow.
-- **Idempotency**: Running `seed:ngsl` multiple times MUST NOT corrupt data or create duplicate records.
-- **Strict Data Validation**: Reject malformed rows; enforce non-null constraints on mandatory fields (`word`, `meaning`, `cefrLevel`).
-
-### Out of Scope
-- Interactive manual editing UI for seeded NGSL words (uses existing Admin / Vocabulary API endpoints).
-- Audio TTS generation (handled dynamically by existing TTS service).
+- **Performance**: Batch DB updates complete in < 10 seconds.
+- **Type Safety**: 0 `any` type bypasses in seeder and card components.
+- **UI Aesthetics**: High-resolution Unsplash photography with dark gradient overlays for maximum contrast.
 
 ---
 
-## 3. UI/UX Specifications (Frontend Integration)
+## 3. UI/UX Specifications (Frontend)
 
-- **Folder & Topic Display**:
-  - Seeded folders ("Essential English - NGSL", "TOEIC Master - TSL", "Academic - NAWL", "Business - BSL", "Spoken - NGSL-S") render seamlessly on `VocabularyListPage` and `FolderDetailPage`.
-  - Single-locale display rule enforced: Topic titles display strictly in active `locale` without secondary language subtitle clutter.
-- **Word Detail Sheet**:
-  - Displays word title, phonetic IPA, CEFR badge (`A1`-`C1`), part of speech, Cloudinary image, localized definitions, and example sentences.
+- **System Folder Cards (`folder-card.tsx`)**:
+  - Displays dedicated Unsplash photography.
+  - Dark gradient overlay ensures high legibility for white folder titles and stats pills.
+- **Sub-Topic Grid View (`folder-topic-grid.tsx`)**:
+  - Renders 5 to 12 evenly-sized 3D sub-topic cards per folder.
+  - Standalone 3D avatar rings with Unsplash cover photos.
+  - Hovering topic cards preserves `text-foreground` without text color changes.
 
 ---
 
-## 4. Architecture & Technical Contracts
+## 4. System Folder Cover Image Mapping Matrix
 
-### Backend ETL Pipeline Architecture (`backend/src/seed-ngsl-vocabulary.ts`)
-
-```
-+------------------------------------+
-|  NGSL Project Official Datasets    |
-| (NGSL, TSL, NAWL, BSL, NGSL-S CSV) |
-+------------------------------------+
-                  |
-                  v
-+------------------------------------+
-|   CSV Parser & ETL Processor       |
-|  - Deduplicate & Normalize         |
-|  - Assign CEFR via Frequency Rank  |
-|  - Map Part-of-Speech & Phonetic   |
-+------------------------------------+
-                  |
-                  v
-+------------------------------------+
-|    TypeORM Batch Upsert Handler    |
-|  - Folders -> Topics -> Words      |
-+------------------------------------+
-                  |
-                  v
-+------------------------------------+
-| Cloudinary CDN Image Pipeline      |
-| (Unsplash API -> CDN Upload)       |
-+------------------------------------+
-```
-
-### Dataset Structure & Folder Mapping
-
-| Dataset | Word Count | Target Folder Name | Category | Primary Use Case |
-| :--- | :--- | :--- | :--- | :--- |
-| **NGSL** | 2,809 | Essential English Vocabulary (NGSL) | General | Foundational core vocabulary (92% text coverage) |
-| **TSL** | 1,200 | TOEIC Master Vocabulary (TSL) | TOEIC | Replaces Barron's 600 TOEIC; 99% TOEIC test coverage |
-| **NAWL** | 960 | Academic Vocabulary (NAWL) | Academic | IELTS / TOEFL reading & writing preparation |
-| **BSL** | 1,700 | Business & Corporate English (BSL) | Business | Office, finance, management & corporate communication |
-| **NGSL-S** | 721 | Spoken & Conversational English | Spoken | Everyday conversation, listening & speaking fluency |
-| **NDL** | 874 | Foundation & Beginner English (NDL) | Foundation | Kids & absolute beginners core words |
-| **NGSL-GR** | ~5,000 | Graded Reading & Expansion (NGSL-GR) | Advanced | Mid-frequency vocabulary expansion |
+| Dataset ID | Folder Name (VI / EN) | Dedicated Unsplash Cover Image URL |
+| :--- | :--- | :--- |
+| `ngsl-core` | Tiếng Anh giao tiếp (NGSL) / General English | `https://images.unsplash.com/photo-1543269865-cbf427effbad?w=800&auto=format&fit=crop&q=80` |
+| `tsl-toeic` | Từ vựng TOEIC (TSL) / TOEIC Vocabulary | `https://images.unsplash.com/photo-1450133064473-71024230f91b?w=800&auto=format&fit=crop&q=80` |
+| `nawl-academic` | Tiếng Anh học thuật (NAWL) / Academic English | `https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80` |
+| `bsl-business` | Tiếng Anh thương mại (BSL) / Business English | `https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80` |
+| `ngsl-spoken` | Tiếng Anh đàm thoại (NGSL-S) / Spoken English | `https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80` |
+| `ndl-foundation` | Tiếng Anh nền tảng (NDL) / Foundation English | `https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&auto=format&fit=crop&q=80` |
 
 ---
 
@@ -117,28 +82,17 @@ This feature establishes an automated Data Ingestion & Seeding Pipeline to impor
 
 | Action | File Path | Purpose |
 | :--- | :--- | :--- |
-| `[NEW]` | `backend/src/seed-ngsl-vocabulary.ts` | Main ETL seeding script for downloading, parsing, and upserting NGSL datasets |
-| `[MODIFY]` | `backend/package.json` | Add `"seed:ngsl"` script target |
+| `[MODIFY]` | `backend/src/contexts/vocabulary/infrastructure/seed/ngsl-datasets.config.ts` | Update concise folder names and sub-topic image configs |
+| `[MODIFY]` | `backend/src/contexts/vocabulary/infrastructure/seed/ngsl-seeder.service.ts` | Update existing folder entities and re-run sub-topic assignment |
+| `[MODIFY]` | `frontend/apps/web/src/features/vocabulary/components/cards/folder-card.tsx` | Add dedicated Unsplash covers for system folders |
+| `[DELETE]` | `backend/src/check-db.ts` | Remove scratch file after verification |
 
 ---
 
 ## 6. Implementation & Quality Verification Checklist
 
-- [ ] Backend script executes idempotently via `pnpm --filter backend seed:ngsl`.
-- [ ] All 5 folders, associated topics, and words correctly seeded in PostgreSQL.
-- [ ] No duplicate database records created on repeated execution.
-- [ ] Backend build check: `tsc --noEmit` in `backend/` passes with 0 errors.
-- [ ] Frontend build check: `tsc --noEmit` in `frontend/` passes with 0 errors.
-- [ ] No `any` type bypasses in script implementation.
-- [ ] All seeded word definitions properly localized for `en` and `vi`.
-
----
-
-## 7. Risks & Technical Considerations
-
-1. **Remote CSV Availability & Timeout**:
-   - *Risk*: Remote URL down or slow network connection during seeding.
-   - *Mitigation*: Cache downloaded CSV files in `backend/data/ngsl/` locally fallback if remote request fails.
-2. **Database Transaction Size**:
-   - *Risk*: Attempting to insert 7,000+ words in a single query may exceed Postgres parameter limits.
-   - *Mitigation*: Batch insert operations in chunks of 100 items per database transaction.
+- [ ] Execute `cmd /c npx ts-node -r tsconfig-paths/register src/seed-ngsl-vocabulary.ts` in `backend`.
+- [ ] Verify each system folder displays a unique Unsplash cover image on the web UI.
+- [ ] Verify each system folder contains 5 to 12 sub-topics with ~150-230 words per sub-topic.
+- [ ] Backend build check: `cmd /c npx tsc --noEmit` in `backend` passes with 0 errors.
+- [ ] Frontend build check: `cmd /c npx tsc --noEmit` in `frontend/apps/web` passes with 0 errors.
