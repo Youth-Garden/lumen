@@ -11,7 +11,9 @@ This skill defines the mandatory workflow and standardized format for feature pl
 
 - **Source of Truth**: Every new feature or major technical enhancement MUST have a dedicated feature document saved in `documents/features/[feature-name].md`.
 - **Language Requirement (MANDATORY)**: All feature plan documents, specifications, architecture diagrams, and checklists in `documents/features/*.md` MUST be written **100% in English**.
-- **Pre-Implementation Requirement**: Before writing or modifying source code for a non-trivial feature, create or update the corresponding feature plan.
+- **Pre-Implementation & Strict Approval Requirement (MANDATORY)**:
+  - BEFORE writing or modifying any source code for a feature, create or update the corresponding feature plan in `documents/features/`.
+  - ALWAYS present the completed feature plan document to the user and wait for their explicit approval before proceeding to implementation. ABSOLUTELY NEVER write or modify source code until the user approves the plan.
 - **Living Document**: Update the status and checklist in `documents/features/[feature-name].md` as work progresses until completion.
 
 ---
