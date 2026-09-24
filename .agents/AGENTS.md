@@ -111,6 +111,10 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
   - The standard `Dialog` component in UIKit (`@lumen/uikit/components`) already defines the standard surface, backdrop, elevation, and close button.
   - Dialog styling MUST strictly only define responsive dimension constraints (e.g. `w-[94vw] sm:max-w-5xl md:max-w-6xl h-[86vh] max-h-[900px] flex flex-col overflow-hidden`) without overriding background, border, or padding.
   - NEVER inject arbitrary divider lines (`border-b`, `border-t`, `divide-*`) into `DialogHeader` or dialog bodies unless explicitly requested by the user.
+- **Strict Prohibition on Redundant Cancel Buttons (MANDATORY)**:
+  - NEVER add a redundant "Cancel" / "Hủy" button to `DialogFooter` in dialogs or modals when a top-right Close ('X') icon or backdrop dismiss action is already active.
+  - Closing via top-right Close ('X') icon or clicking the backdrop overlay already serves as the standard dismiss mechanism.
+  - `DialogFooter` MUST strictly only contain primary action buttons (e.g., `<Button>{t('saveChanges')}</Button>`) to keep UI clean, focused, and free of redundant clutter.
 
 ---
 
