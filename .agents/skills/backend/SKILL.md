@@ -293,9 +293,9 @@ Persist aggregate state and domain events atomically in the same TypeORM transac
 - **Prioritize Generic & DRY Code Reuse**: Standard structures, utilities, DTOs, and wrappers built in `shared/` (such as `PaginationDto`, `BaseFilterDto`, `PaginatedResponseDto`, `PaginatedQuery`, `BaseFilterQuery`, base entities, decorators, mappers) MUST be reused directly. NEVER duplicate existing logic/schemas.
 - **Adhere to SOLID Principles**: Ensure Single Responsibility for each handler/DTO, Open/Closed through inheritance from base DTOs/classes, and Interface Segregation across independent query/command ports.
 
-## 16. Strict Universal Multilingual Schema & Future-Proof Localization Rule (MANDATORY)
+## 17. Strict Prohibition on Meaningless Re-assignments, Redundant Fallbacks & Redundant Logic (MANDATORY)
 
-- **Uniform Multilingual Data Schema**: All dynamic multilingual data fields across Backend (Entities, DTOs, DB JSONB columns) MUST strictly and exclusively use the uniform generic schema (`Record<string, string> | string`).
-- **Zero Schema Ad-hoc / Bypasses**: Absolutely NEVER create ad-hoc field variations like `definitionEn`, `translationVi`, `sentenceEn`, `topicVi`, `name` + `viName` or custom property suffixes in Database Entities, Response DTOs, or Domain Entities.
-- **Future-Proof Multi-Language Support**: Backend JSONB columns and response DTOs must store and return full language maps (`{ en: '...', vi: '...', ja: '...', ko: '...' }`) without hardcoding or restricting to only two languages.
-- **Unified Query Serialization**: Dynamic JSONB / text columns parsed from raw SQL or TypeORM must pass through generic JSON parsing (`parseI18nValue`) without hardcoding key assumptions.
+- **Zero Meaningless Re-assignments**: ABSOLUTELY NEVER perform meaningless re-assignments of variables, properties, or fields back to themselves or through identity functions/utils when types already match (e.g. `const x = x`, `const title = toI18nString(command.title)` when `command.title` is already typed as `I18nString`). Pass typed parameters directly to constructors, functions, domain aggregates, and database calls without useless intermediate wrappers.
+- **Zero Redundant Fallbacks & Over-defensive Logic**: ABSOLUTELY NEVER add redundant nullish coalescing operators (`?? ''`, `|| ''`, `?? []`, `|| {}`), speculative ternaries, or redundant `if-else` guard blocks when a field, array, or object is already guaranteed by TypeScript types or schema contracts. Eliminate redundant fallback checks and redundant nested `if` statements across services, mappers, handlers, and components. Keep pure logic clean, minimal, and direct.
+- **Zero Redundant Code & Dead Logic**: Keep all execution paths concise, direct, and minimal. Strictly eliminate dead code branches, unused helper calls, duplicate assignments, and unnecessary boilerplate wrappers.
+

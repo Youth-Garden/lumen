@@ -272,13 +272,12 @@ This skill defines mandatory rules, architectural standards, and design system c
 
 ---
 
-## 22. Strict Part of Speech Enum & Normalization (`PartOfSpeech`, `normalizePartOfSpeech`, `formatPartOfSpeechShort`) (MANDATORY)
+## 23. Strict Prohibition on Meaningless Re-assignments, Redundant Fallbacks & Redundant Logic (MANDATORY)
 
-- **PartOfSpeech Enum**: All parts of speech must strictly resolve to standard values from `PartOfSpeech` enum (`noun`, `verb`, `adjective`, `adverb`, `preposition`, `conjunction`, `pronoun`, `interjection`, `phrase`, `idiom`, `numeral`).
-- **Universal Normalization Utility (`normalizePartOfSpeech`)**:
-  - NEVER write ad-hoc repetitive inline checks or `if-else` chains for part of speech normalization (e.g. `trimmed === 'n' || trimmed === 'noun'`).
-  - ALWAYS use `normalizePartOfSpeech(pos)` from `@/shared/utils` for canonical normalization.
-  - ALWAYS use `formatPartOfSpeechShort(pos)` from `@/shared/utils` when rendering concise abbreviations (`n.`, `v.`, `adj.`, `adv.`, `prep.`, etc.).
+- **Zero Meaningless Re-assignments**: ABSOLUTELY NEVER perform meaningless re-assignments of variables, properties, or fields back to themselves or through identity functions/utils when types already match (e.g. `const x = x`, `const title = toI18nString(command.title)` when `command.title` is already typed as `I18nString`). Pass typed parameters directly to constructors, functions, domain aggregates, and database calls without useless intermediate wrappers.
+- **Zero Redundant Fallbacks & Over-defensive Logic**: ABSOLUTELY NEVER add redundant nullish coalescing operators (`?? ''`, `|| ''`, `?? []`, `|| {}`), speculative ternaries, or redundant `if-else` guard blocks when a field, array, or object is already guaranteed by TypeScript types or schema contracts. Eliminate redundant fallback checks and redundant nested `if` statements across services, mappers, handlers, and components. Keep pure logic clean, minimal, and direct.
+- **Zero Redundant Code & Dead Logic**: Keep all execution paths concise, direct, and minimal. Strictly eliminate dead code branches, unused helper calls, duplicate assignments, and unnecessary boilerplate wrappers.
+
 
 
 
