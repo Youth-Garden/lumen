@@ -52,6 +52,22 @@ This skill defines the mandatory architecture, data modeling contracts, bulk SQL
 - **Independent Tracking**: User review intervals (SM-2 / FSRS algorithm) are tracked per flashcard in a specific deck.
 - **Master Term Knowledge**: The application layer can query a user's global mastery of a master `wordId` across all folders without conflating study states.
 
+### 1.4 Mandatory 100% Rich Data Quality Requirement (NO WORKAROUNDS)
+- **No Empty / Dummy Words**: Every word in `WordEntity` and `DefinitionEntity` MUST be enriched with:
+  1. **Phonetic IPA**: `phoneticUs`, `phoneticUk`, and `phonetic` (e.g. `/kənvˈeɪ/`, `/ˌɑːrkɪˈtɛktʃərəl/`).
+  2. **Audio URLs**: `audioUsUrl` and `audioUkUrl` (direct `.mp3` links from FreeDictionary API or Oxford/Google TTS CDN).
+  3. **Per-Term Illustration Image (`imageUrl`)**: Dynamic search query image per word via **Pixabay API** (`https://pixabay.com/api/` with key `57757775-157d5dec6a75e09a1e1fde580`, `image_type=photo`, `orientation=horizontal`, `safesearch=true`). If 0 hits, fallback dynamically to Wikimedia Commons per term. **STRICTLY NO static fallback array or hardcoded image lists**.
+  4. **Bilingual Definition**: `definition` JSONB MUST contain both `"en"` (English definition) and `"vi"` (accurate Vietnamese translation).
+  5. **Bilingual Example Sentence**: `vocab_examples.sentence` JSONB MUST contain both `"en"` and `"vi"` (deduplicated).
+- **Mandatory Enrichment Module & Script Location**:
+  - Shared Infrastructure Module: `backend/src/shared/infrastructure/enrichment/` (`EnrichmentModule`, `VocabularyEnricherService`)
+  - Main CLI pipeline script: `backend/src/scripts/enrich-vocabulary-data.ts`
+- **Mandatory Timestamped Script Execution & Logging Rule**:
+  - Never run ad-hoc unlogged background commands.
+  - Every batch execution/seed run MUST create a dedicated timestamped folder: `backend/src/scripts/temp/YYYY-MM-DD-HHmmss-[task-name]/`.
+  - Inside this folder, place the runner script (e.g. `run.ts`) and output detailed execution progress into `execution.log`.
+  - All `temp/` folders and `*.log` files are ignored by git (`.gitignore`).
+
 ---
 
 ## 2. Bulk SQL Pipeline & Database Gotchas
@@ -211,12 +227,16 @@ File: `backend/src/contexts/vocabulary/infrastructure/seed/ngsl-datasets.config.
 
 ## 5. Execution Commands & Verification Runbook
 
-### 5.1 Run Seeder
+### 5.1 Run Seeder & Enrichment Pipeline
 From the `backend` workspace root:
 
 ```bash
+# Step 1: Seed vocabulary master terms & decks
 cd backend
 npx ts-node -r tsconfig-paths/register src/seed-ngsl-vocabulary.ts
+
+# Step 2: Run 100% Rich Data Enrichment (IPA, Audio, Dynamic Image, Bilingual Defs & Examples)
+npx ts-node -r tsconfig-paths/register src/scripts/enrich-vocabulary-data.ts
 ```
 
 ### 5.2 Verification Checklist Before Claiming Done

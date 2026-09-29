@@ -104,6 +104,7 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
 - **Use `<Card variant="muted">` for Inner Informational Blocks**: ALWAYS use `<Card variant="muted" size="sm">` from `@lumen/uikit/components` for inner informational cards, stat chips, and nested stage blocks instead of writing custom `div` boxes with repetitive `bg-muted/... rounded-...` classes.
 - **No Manual Card Re-styling (Prioritize Variants & Zero-Override)**: NEVER manually override or inject custom `shadow-*` (`shadow-sm`, `shadow-xs`, `shadow-md`, `shadow-xl`), custom `rounded-*` (`rounded-3xl`, `rounded-2xl`), custom `border-*` (`border-none`), or custom `bg-*` (`bg-card`) onto `<Card>`. Use `variant` and `size` directly.
 - **Zero-Hover on Non-Interactive Elements**: Cards, tiles, badges, or list items that have NO click action, NO `onClick`, and NO `href` MUST NEVER have hover effects (`hover:bg-...`, `hover:scale-...`, `hover:shadow-...`) or `cursor-pointer`. Interactive states are strictly reserved for clickable components.
+- **Clean Row Hover State (No Image Scaling or Secondary Side-effects)**: Interactive list items, folder rows, card rows, or table items MUST strictly only update their container background color (e.g. `hover:bg-muted/50`) when hovered. NEVER add image scaling (`group-hover:scale-105`), icon movement, text color shifts, or nested transform effects on child elements when hovering over a row.
 
 ---
 

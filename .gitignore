@@ -7,3 +7,8 @@ data-generator/
 data-generator/*
 *.mp3
 toeic-600-words-dataset
+
+# Temporary scratch & logs
+scratch/
+logs/
+*.log

@@ -1,62 +1,78 @@
-# Feature Plan: Command Palette Comprehensive Search Enhancement
+# Feature Plan: Command Palette Full-Text Search & UI Refinement
 
-> **Status**: Approved
+> **Status**: Completed
 > **Author**: Antigravity Pair Programmer / BA
-> **Date**: 2026-09-25
-> **Target Module**: `frontend/apps/web/src/shared/components/command-palette.tsx`
+> **Date**: 2026-09-27
+> **Target Module**: `frontend/packages/uikit/src/components/ui/command.tsx` & `frontend/apps/web/src/shared/components/command-palette.tsx`
 
 ---
 
 ## 1. Overview & Objectives
 
-The Command Palette (`Ctrl + K` search modal) was previously limited to basic folder and master word queries, lacking support for sub-topics, navigation tabs/pages, and direct interactive word detail triggers.
-
-This enhancement expands the Command Palette into a comprehensive, multi-domain search engine supporting:
-1. **Navigation Pages & Main Tabs** (Dashboard, Decks, Due Reviews, TOEIC, Dictation, Reading, Speaking, Grammar, Settings).
-2. **System & Custom Folders** (Full-text query against folder names, descriptions, and categories).
-3. **Sub-Topics across System Decks** (Live search across sub-topics e.g. "Contracts", "Marketing", "Travel", "Greeting", "Kinh doanh" with parent folder context badges).
-4. **Master Vocabulary Words** (Instant term search with CEFR level badges and direct trigger of the interactive `WordDetailSheet` modal).
-5. **Quick Actions** (Account Profile, Settings, and Logout).
+Refine the Command Palette (`CommandPalette` & UIKit `Command` components) to fix search results visibility, row hover styling, height expansion, and destructive action formatting:
+1. **Disable `cmdk` In-Memory Filtering (`shouldFilter={false}`)**: Ensure custom search logic (Vocabulary Words API, Folder topics, System Folders, Nav pages, Quick actions) displays all matching items without being hidden by `cmdk`'s internal filter.
+2. **Remove Unwanted Row Hover Borders**: Eliminate `border-primary/20` on `<CommandItem>` hover/selection. Match the clean, soft background hover style of `DropdownMenuItem` (`data-[selected=true]:bg-muted/70` or `data-[selected=true]:bg-accent`).
+3. **Destructive Action Styling for Logout**: Add `variant="destructive"` support to `<CommandItem>` so the Logout action displays with soft red text (`text-destructive`) and red hover background (`hover:bg-destructive/10 text-destructive font-medium`).
+4. **Smooth Height Expansion (`max-h-[80vh]`)**: Update `<CommandList>` and dialog container to smoothly animate and expand up to `80vh` when results are returned.
 
 ---
 
 ## 2. Requirements & Scope
 
 ### Functional Requirements
-- [x] **Navigation Tab Search**: Filter main application routes in both English & Vietnamese.
-- [x] **Sub-Topic Search**: Query sub-topics across system decks with parent folder context and total word counts.
-- [x] **Folder Search**: Multi-field matching against name, description, and category.
-- [x] **Interactive Word Sheet**: Selecting a word opens `WordDetailSheet` directly with audio, definitions, and examples instead of broken routes.
-- [x] **Zero Layout Shift**: Debounced queries and clean grouping with i18n highlight text.
+- Set `shouldFilter={false}` on `CommandPrimitive` inside `Command` / `CommandDialog` so custom filtering handles item visibility across all 5 search categories:
+  1. Vocabulary Folders
+  2. Sub-Topics
+  3. Vocabulary Words (API `GET /vocabulary/words?search=...`)
+  4. Pages & Features
+  5. Quick Actions (Profile Settings, Logout)
+- Update `<CommandItem>` in `@lumen/uikit/components/ui/command.tsx`:
+  - Remove `border border-transparent` and `data-[selected=true]:border-primary/20`.
+  - Implement `variant="default" | "destructive"` props.
+  - Destructive variant renders `text-destructive data-[selected=true]:bg-destructive/10 data-[selected=true]:text-destructive`.
+- Update `<CommandList>` max height to `max-h-[min(80vh,650px)]` with smooth `transition-all duration-300 ease-in-out`.
 
 ### Non-Functional Requirements
-- Type safety with strict `I18nString` resolvers (`i18nText`, `includesI18n`).
-- Custom hook & component line limit compliance (<= 300 lines).
-- Seamless integration with TanStack Query caching for topic lists (`staleTime: 5 min`).
+- **Design System Consistency**: Matches standard dropdown menu elevation, borderless rows, and destructive action styling.
+- **Performance**: Instant search response using debounced queries without double-filtering bugs.
+- **Type Safety**: Full TypeScript interfaces, 0 `any` bypasses.
 
 ---
 
-## 3. UI/UX Specifications
+## 3. UI/UX Specifications (Frontend)
 
-- **Group Headers**: Categorized results into `Suggestions / Pages`, `Folders`, `Topics`, `Vocabulary Words`, and `Quick Actions`.
-- **Badges**: Primary accent chips for Categories & CEFR levels, subtle badges for parent folder names.
-- **Portals**: Clean integration with `@lumen/uikit/portal` for `WordDetailSheet`.
+- **CommandItem Default**: `relative flex cursor-pointer gap-2 select-none items-center rounded-xl px-3 py-2.5 text-sm outline-none transition-colors data-[selected=true]:bg-muted/70 text-foreground`
+- **CommandItem Destructive (Logout)**: `data-[selected=true]:bg-rose-500/10 dark:data-[selected=true]:bg-rose-500/20 text-rose-500 dark:text-rose-400 font-medium`
+- **Dialog & List Height**: `max-h-[min(80vh,650px)]` with smooth transition.
 
 ---
 
-## 4. Architecture & File Change Matrix
+## 4. Architecture & Technical Contracts
+
+- Component updated: `@lumen/uikit/src/components/ui/command.tsx`
+- Component updated: `@/shared/components/command-palette.tsx`
+
+---
+
+## 5. File Change Matrix
 
 | Action | File Path | Purpose |
 | :--- | :--- | :--- |
-| `[NEW]` | `documents/features/command-palette-full-text-search-enhancement.md` | BA Feature Spec Document |
-| `[MODIFY]` | `frontend/apps/web/src/shared/components/command-palette.tsx` | Comprehensive Search Implementation |
-| `[MODIFY]` | `frontend/apps/web/src/shared/i18n/messages/vi.json` | i18n Command Palette copy |
-| `[MODIFY]` | `frontend/apps/web/src/shared/i18n/messages/en.json` | i18n Command Palette copy |
+| `[MODIFY]` | `frontend/packages/uikit/src/components/ui/command.tsx` | Remove row hover borders, add `variant="destructive"`, expand max height to `80vh`. |
+| `[MODIFY]` | `frontend/apps/web/src/shared/components/command-palette.tsx` | Disable `cmdk` internal filter, apply `variant="destructive"` to Logout item. |
 
 ---
 
-## 5. Implementation Verification Checklist
+## 6. Implementation & Quality Verification Checklist
 
-- [x] Frontend `tsc --noEmit` build passes with 0 errors.
-- [x] Clean `I18nString` access without raw property indexing.
-- [x] Navigation tabs, topics, folders, and vocabulary words verified.
+- [x] No borders on hover/selection of command items.
+- [x] Searching any term (e.g., "p") returns vocabulary words, topics, folders, and pages.
+- [x] Logout item has red text and soft red background on hover.
+- [x] Dialog smoothly expands up to `80vh`.
+- [x] `tsc --noEmit` passes with 0 errors.
+
+---
+
+## 7. Risks & Technical Considerations
+
+- Ensure `CommandInput` focus is preserved when results update dynamically.

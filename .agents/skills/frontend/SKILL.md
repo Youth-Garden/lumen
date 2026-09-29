@@ -83,6 +83,7 @@ This skill defines mandatory rules, architectural standards, and design system c
   - ALWAYS use the global `<Card>` component from `@lumen/uikit/components`. Use `default` (standard surface) for outer containers and `variant="muted"` (with `size="sm"`) for inner informational cards, stat chips, and nested stage blocks. NEVER invent ad-hoc `div` containers with repetitive custom `bg-muted/... rounded-...` classes.
   - **No Manual Card Re-styling**: NEVER manually override or inject custom `shadow-*`, custom `rounded-*`, custom `border-*`, or custom `bg-*` onto `<Card>`. Use `variant` and `size` directly.
   - **Zero-Hover on Non-Interactive Elements (MANDATORY)**: Cards, tiles, badges, or list items that have NO click action, NO `onClick`, and NO `href` MUST NEVER have hover effects (`hover:bg-...`, `hover:scale-...`, `hover:shadow-...`, `hover:border-...`) or `cursor-pointer`. Interactive states are strictly reserved for clickable components.
+  - **Clean Row Hover State (No Image Scaling or Secondary Side-effects)**: Interactive list items, folder rows, card rows, or table items MUST strictly only update their container background color (e.g. `hover:bg-muted/50`) when hovered. NEVER add image scaling (`group-hover:scale-105`), icon movement, text color shifts, or nested transform effects on child elements when hovering over a row.
 
 ### 3.4 Anti-Border / Anti-Card-Clutter Aesthetics (MANDATORY)
 
