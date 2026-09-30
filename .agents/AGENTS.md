@@ -47,6 +47,7 @@ DO NOT ignore these skills. The architectural, design system, and syntax rules f
     3. **Workarounds & Compatibility Aliases**: NEVER create alias bridges (`export const useCreateDeck = useCreateFolder;`, `export type Deck = Folder;`) to avoid refactoring. Refactor thoroughly across the entire codebase.
     4. **Coupled / Ping-Pong State Hooks**: NEVER split a single state flow into mutually interdependent hooks (hook A calls hook B, and hook B sends callbacks back to hook A). Centralize state in a Single Source of Truth and use Pure Functions.
     5. **Careless Type Bypasses**: NEVER use `any`, `as any`, or `as unknown as T` to bypass the TypeScript compiler.
+    6. **Duplicate Error Toasts**: The HTTP Client / Service Layer (`CoreService`) automatically triggers `toast.error(message)` for all API error responses. Features, components, custom hooks, or form handlers MUST NOT call `toast.error()` inside local `catch` blocks or `onError` callbacks for API calls to prevent double-toasting.
 
 ---
 
