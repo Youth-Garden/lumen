@@ -38,7 +38,7 @@ This feature plan establishes standard **Optimistic UI Updates** across core use
   - `studyKeys.dueFlashcards()`
 - [x] Update fields:
   - If `isResetToUnlearned`: `level = 0`, `learningStep = 0`, `isWilted = false`.
-  - If `isFastTrackKnown`: `level = 6`, `learningStep = 6`, `isWilted = false`.
+  - If `isFastTrackKnown`: `level = 5`, `learningStep = 6`, `isWilted = false`.
 - [x] Rollback on `onError`.
 - [x] Resync on `onSettled`.
 

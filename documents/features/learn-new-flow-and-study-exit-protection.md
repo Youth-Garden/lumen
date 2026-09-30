@@ -173,7 +173,7 @@ export const LESSON_QUOTA_CONFIGS: Record<LessonQuotaPreset, LessonQuotaConfig> 
 - [x] Clicking "Continue Studying" resumes session.
 - [x] Learn New starts with Flashcard introduction of new words first.
 - [x] Tier selection (FEW = 3, MODERATE = 5, MANY = 7, A_LOT = 10) produces exact new word counts.
-- [x] Mastered (1) and Temp (3) advance words to Level 6 and 3 and exclude them from Phase 2 quizzes.
+- [x] Mastered (1) and Temp (2) advance words to Level 5 and 2 and exclude them from Phase 2 quizzes.
 - [x] "Learn This Word" (Enter) schedules Phase 2 interleaving quizzes.
 - [x] Scope resolution tested across all 4 entry points: Pinned Folder, Overview, Folder Detail, Topic Detail.
 - [x] Edge cases (0 new words, few new words, no pinned folder) verified without crashes.

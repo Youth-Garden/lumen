@@ -12,3 +12,4 @@ toeic-600-words-dataset
 scratch/
 logs/
 *.log
+.vscode/

@@ -49,8 +49,8 @@ graph TD
     CheckMode -->|Yes| Phase1[Phase 1: Flashcard Introduction]
     CheckMode -->|No| Phase2[Phase 2: Adaptive Quizzes]
     
-    Phase1 -->|Rate '1' - Mastered| FastTrackKnown[Jump to Level 6 - Excluded from Quiz]
-    Phase1 -->|Rate '2' - Review| FastTrackTemp[Jump to Level 3 - Excluded from Quiz]
+    Phase1 -->|Rate '1' - Mastered| FastTrackKnown[Jump to Level 5 Sunflower - Excluded from Quiz]
+    Phase1 -->|Rate '2' - Review| FastTrackTemp[Jump to Level 2 Sapling - Excluded from Quiz]
     Phase1 -->|Rate 'Enter' - Don't Know| EnqueueQuiz[Add to Phase 2 Quiz Queue]
     
     FastTrackKnown --> Phase1Done{All Phase 1 Cards Finished?}
